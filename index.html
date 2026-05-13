@@ -1,0 +1,4231 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Maartens Place</title>
+  <meta name="theme-color" content="#c85f8d" />
+  <!-- PWA / installeerbare app: alleen toegevoegd voor GitHub Pages -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <style>
+    :root{
+      --bg1:#f6eef2;
+      --bg2:#efe7ed;
+      --panel:rgba(255,255,255,.78);
+      --panel-strong:#ffffff;
+      --text:#16243a;
+      --muted:#667892;
+      --accent:#c85f8d;
+      --accent2:#df84a9;
+      --line:#e8dee5;
+      --button-bg:#c85f8d;
+      --button-bg2:#df84a9;
+      --button-text:#ffffff;
+      --button-soft-bg:rgba(255,255,255,.82);
+      --button-soft-text:#16243a;
+      --input-bg:#ffffff;
+      --tile-bg:rgba(255,255,255,.78);
+      --shadow:0 16px 40px rgba(20,33,50,.10);
+      --radius:24px;
+      --tileW:220px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(255,255,255,.95), transparent 26%),
+        radial-gradient(circle at 100% 0%, rgba(255,255,255,.9), transparent 24%),
+        linear-gradient(135deg,var(--bg1),var(--bg2));
+      overflow-x:hidden;
+    }
+
+    body.compact-mode{--tileW:180px}
+    body.senior-mode{font-size:1.42rem}
+    body.senior-mode .title{font-size:clamp(2.9rem,10vw,5.5rem)}
+    body.senior-mode .subtitle,
+    body.senior-mode .chip,
+    body.senior-mode .btn,
+    body.senior-mode .field,
+    body.senior-mode .seg,
+    body.senior-mode .tabpill,
+    body.senior-mode .tileTitle,
+    body.senior-mode .folderName{font-size:1.28rem}
+    body.senior-mode .tile{min-height:340px}
+    body.senior-mode .tileIcon{width:92px;height:92px;font-size:2.8rem}
+    body.senior-mode .menuBtn,body.senior-mode .iconBtn{width:60px;height:60px;font-size:1.4rem}
+
+    .shell{padding:16px;max-width:1600px;margin:0 auto}
+    .top{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:16px;
+      align-items:start;
+      margin-bottom:16px;
+    }
+
+    .brand{
+      display:flex;align-items:flex-start;gap:16px;
+      min-width:0;
+    }
+    .logo{
+      width:88px;height:88px;border-radius:28px;
+      background:linear-gradient(135deg,var(--button-bg),var(--button-bg2));
+      display:grid;place-items:center;color:var(--button-text);
+      font-size:2rem;font-weight:800;box-shadow:var(--shadow);flex:none;
+    }
+    .title{
+      margin:0;
+      font-size:clamp(2rem,6vw,5rem);
+      line-height:1;
+      letter-spacing:-.04em;
+    }
+    .subtitle{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:clamp(1rem,2.4vw,1.2rem);
+      line-height:1.4;
+    }
+
+    .topActions{
+      display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;
+    }
+
+    .switch{
+      display:inline-flex;align-items:center;gap:12px;
+      background:var(--panel);border-radius:22px;padding:12px 14px;box-shadow:var(--shadow);
+      white-space:nowrap;
+    }
+    .switch input{display:none}
+    .slider{
+      width:56px;height:32px;border-radius:999px;background:#d2d8e3;position:relative;flex:none;
+      transition:.2s ease;
+    }
+    .slider::after{
+      content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;
+      background:#fff;box-shadow:0 4px 10px rgba(0,0,0,.16);transition:.2s ease;
+    }
+    .switch input:checked + .slider{
+      background:linear-gradient(135deg,var(--button-bg),var(--button-bg2));
+    }
+    .switch input:checked + .slider::after{transform:translateX(24px)}
+
+    .iconBtn,.btn,.tabpill,.chip,.seg{
+      border:0;background:var(--button-soft-bg);color:var(--button-soft-text);box-shadow:var(--shadow);
+      border-radius:18px;padding:14px 16px;font:inherit;font-weight:700;cursor:pointer;
+      transition:.15s ease;
+    }
+    .iconBtn:active,.btn:active,.tabpill:active,.chip:active,.seg:active{transform:scale(.98)}
+    .iconBtn{min-width:54px}
+    .btn.primary{background:linear-gradient(135deg,var(--button-bg),var(--button-bg2));color:var(--button-text)}
+    .btn.ghost{background:rgba(255,255,255,.55)}
+    .btn.small,.chip,.seg{padding:10px 14px;border-radius:16px}
+    .btn.full{width:100%}
+
+    .panel{
+      background:rgba(255,255,255,.42);
+      backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.6);
+      border-radius:32px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+
+    .label{
+      text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;color:var(--muted);font-weight:800;margin-bottom:10px;
+    }
+
+    .tabRow,.quickRow,.toolbar{
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    }
+
+    .tabpill.active{
+      background:linear-gradient(135deg,var(--button-bg),var(--button-bg2));color:var(--button-text);
+      transform:scale(1.03);
+    }
+
+    .toolbar{margin-top:14px}
+    .search{
+      flex:1;min-width:220px;
+      border:1px solid var(--line);background:var(--input-bg);border-radius:18px;
+      padding:14px 16px;font:inherit;color:var(--text);
+    }
+    .segWrap{
+      display:inline-flex;background:var(--panel);padding:6px;border-radius:18px;box-shadow:var(--shadow)
+    }
+    .seg.active{background:var(--input-bg)}
+
+    .board{
+      margin-top:14px;
+      min-height:56vh;
+      position:relative;
+    }
+
+    .tiles{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(min(var(--tileW),100%),1fr));
+      gap:16px;
+    }
+
+    .tile{
+      position:relative;
+      min-height:220px;
+      background:var(--tile-bg);
+      border:1px solid rgba(255,255,255,.75);
+      border-radius:28px;
+      padding:18px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      resize:both;
+      overflow:auto;
+    }
+    body.user-mode .tile{resize:none}
+    .tileTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .tileIcon{
+      width:64px;height:64px;border-radius:20px;background:#eef1fb;display:grid;place-items:center;
+      font-size:1.8rem;overflow:hidden;flex:none;
+    }
+    .tileIcon img{width:100%;height:100%;object-fit:cover}
+    .tileTitle{margin:0;font-size:1.18rem}
+    .tileSub{margin:0;color:var(--muted);line-height:1.35}
+    .menuBtn{
+      background:var(--input-bg);border:0;border-radius:14px;padding:10px 12px;
+      box-shadow:0 8px 18px rgba(20,33,50,.08);cursor:pointer;
+    }
+    .menu{
+      position:absolute;right:18px;top:66px;min-width:180px;background:var(--panel-strong);border:1px solid var(--line);
+      border-radius:18px;padding:8px;display:none;z-index:20;box-shadow:var(--shadow)
+    }
+    .menu.open{display:grid;gap:6px}
+    .menu button{
+      border:0;background:transparent;padding:12px 14px;border-radius:14px;text-align:left;font:inherit;cursor:pointer
+    }
+    .menu button:hover{background:#f6f7fb}
+    .menu .danger{color:#b42318}
+
+    .meta{
+      background:var(--input-bg);border:1px solid var(--line);border-radius:18px;padding:12px 14px;color:var(--muted);line-height:1.45
+    }
+
+    .noteArea,.field,textarea,select{
+      width:100%;border:1px solid var(--line);background:var(--input-bg);color:var(--text);
+      border-radius:18px;padding:12px 14px;font:inherit;
+    }
+    .noteArea{min-height:120px;resize:vertical}
+    .noteViewer{
+      background:var(--input-bg);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:12px 14px;
+      color:var(--text);
+      line-height:1.5;
+      white-space:pre-wrap;
+      overflow:hidden;
+      max-height:132px;
+      transition:max-height .22s ease;
+    }
+    .noteViewer.expanded{max-height:min(70vh,1200px);overflow:auto}
+    .tile.note-reader-wide{
+      grid-column:span 2;
+      min-height:320px;
+    }
+    .tile.note-reader-wide .noteViewer{
+      max-height:min(70vh,1200px);
+      font-size:1.04em;
+    }
+    .noteExpandBtn{align-self:flex-start;margin-top:-4px}
+    .noteExpandBtn.hidden{display:none}
+
+    @media (min-width:1200px){
+      .tile.note-reader-wide{grid-column:span 3}
+    }
+    @media (max-width:760px){
+      .tile.note-reader-wide{grid-column:1/-1}
+    }
+
+    .checklist{display:grid;gap:10px}
+    .checkRow{
+      display:flex;align-items:center;gap:10px;background:var(--input-bg);border:1px solid var(--line);
+      border-radius:16px;padding:10px 12px;
+    }
+    .checkRow span{flex:1}
+    .checkRow .field{flex:1}
+    .checkRow.done span,
+    .checkRow.done .field{text-decoration:line-through;color:var(--muted)}
+    .checkDelete{
+      border:0;background:transparent;color:#b42318;font-size:1.1rem;cursor:pointer
+    }
+
+    .dropzone{
+      border:2px dashed #cfd8ef;background:rgba(255,255,255,.35);
+      min-height:120px;border-radius:24px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:16px;
+    }
+    .dropzone strong{display:block;color:var(--text);margin-bottom:6px}
+
+    .folderList{display:grid;gap:12px}
+    .folderRow{
+      display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;
+      background:var(--input-bg);border:1px solid var(--line);border-radius:20px;padding:12px
+    }
+    .folderMeta{min-width:0}
+    .folderMeta strong{display:block}
+    .folderMeta span{display:block;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rowBtns{display:flex;gap:8px;flex-wrap:wrap}
+    .rowBtns button{padding:10px 12px;border-radius:14px;border:0;background:#f7f8fb;cursor:pointer;font:inherit;font-weight:700}
+    .rowBtns .primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+
+    .ghost{
+      border:2px dashed var(--line);background:rgba(255,255,255,.35);justify-content:center;align-items:center;text-align:center;cursor:pointer
+    }
+    .ghost strong{display:block}
+    .empty{display:none;padding:22px;border-radius:22px;background:rgba(255,255,255,.45);color:var(--muted)}
+
+    dialog{
+      width:min(940px,calc(100vw - 18px));
+      border:0;padding:0;border-radius:30px;overflow:hidden;box-shadow:0 30px 80px rgba(20,33,50,.28)
+    }
+    dialog::backdrop{background:rgba(20,30,44,.32);backdrop-filter:blur(5px)}
+    .modal{
+      background:#f8fbff;max-height:min(90vh,1000px);overflow:auto;padding:24px
+    }
+    .modal h3{margin:0 0 8px;font-size:1.9rem}
+    .modal p{margin:0 0 16px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .full{grid-column:1/-1}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .picker{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+    .pickWrap{position:relative}
+    .pick{border:1px solid var(--line);background:var(--input-bg);border-radius:14px;padding:10px;cursor:pointer;font-size:1.3rem}
+    .pick.active{outline:2px solid var(--accent)}
+    .pickDelete{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border:none;border-radius:999px;background:#fff;color:#b42318;box-shadow:0 2px 8px rgba(0,0,0,.18);cursor:pointer;font-weight:700;line-height:1}
+    .toolRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+    .rangeWrap{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+    .toolBtn.active{outline:2px solid var(--button-bg)}
+    .appToast{
+      position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(18px);
+      background:linear-gradient(135deg,var(--button-bg),var(--button-bg2));color:var(--button-text);border-radius:18px;
+      padding:14px 18px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.2s ease;z-index:2000
+    }
+    .appToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    .pinPanel{display:grid;gap:16px;max-width:360px;margin:8px auto 0}
+    .pinDisplay{
+      min-height:74px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(200,95,141,.12),rgba(223,132,169,.10));
+      border:1px solid rgba(200,95,141,.18);border-radius:24px;font-size:2rem;font-weight:800;letter-spacing:.28em
+    }
+    .pinPad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .pinKey{
+      min-height:64px;border:1px solid var(--line);background:var(--input-bg);border-radius:20px;font:inherit;font-weight:800;cursor:pointer
+    }
+    .pinKey.primary{background:linear-gradient(135deg,var(--button-bg),var(--button-bg2));color:var(--button-text)}
+
+    .canvasItem{
+      position:absolute;z-index:5;background:var(--tile-bg);border:2px solid rgba(255,255,255,.8);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)
+    }
+    .canvasItem img{width:100%;height:100%;object-fit:cover;display:block}
+    .canvasTools{
+      position:absolute;top:8px;right:8px;display:flex;gap:6px;z-index:2
+    }
+    .mini{
+      border:0;background:var(--button-soft-bg);color:var(--button-soft-text);border-radius:12px;padding:7px 9px;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.1)
+    }
+    .resizeHandle{
+      position:absolute;right:0;bottom:0;width:24px;height:24px;background:linear-gradient(135deg,transparent 50%, rgba(200,95,141,.55) 50%);
+      cursor:nwse-resize
+    }
+
+    .drawCanvas{
+      width:100%;height:320px;border:1px solid var(--line);background:var(--input-bg);border-radius:22px;touch-action:none
+    }
+    .colorRow{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+    .colorDot{
+      width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line), var(--shadow);
+      cursor:pointer
+    }
+    .colorDot.active{outline:3px solid var(--text);outline-offset:2px}
+    .colorMaker{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+    .colorMaker .field{max-width:180px}
+    .confirmText{margin:0;color:var(--muted);line-height:1.5}
+    .readonlyField{background:#f6f7fb;color:var(--muted)}
+    .fileChooserHint{color:var(--muted);font-size:.92rem;margin-top:8px}
+    
+    .hidden{display:none !important}
+
+    /* Drag-and-drop tegels naar tabbladen */
+    .tile .dragHandle{
+      display:none;
+      position:absolute;top:10px;left:10px;z-index:10;
+      width:36px;height:36px;border-radius:12px;
+      background:linear-gradient(135deg,var(--button-bg),var(--button-bg2));
+      color:var(--button-text);border:0;cursor:grab;
+      font-size:1.1rem;place-items:center;
+      box-shadow:0 4px 12px rgba(0,0,0,.15);
+      transition:.15s ease;
+    }
+    .tile .dragHandle:active{cursor:grabbing;transform:scale(.92)}
+    body:not(.user-mode) .tile .dragHandle{display:grid}
+
+    .dragGhost{
+      position:fixed;z-index:9999;pointer-events:none;
+      background:var(--tile-bg);border:2px solid var(--accent);
+      border-radius:20px;padding:14px 18px;
+      box-shadow:0 20px 50px rgba(20,33,50,.25);
+      opacity:.92;max-width:240px;
+      display:flex;align-items:center;gap:10px;
+      font-weight:700;font-size:.95rem;
+      transition:opacity .15s ease;
+    }
+    .dragGhost .tileIcon{width:40px;height:40px;border-radius:14px;font-size:1.2rem;flex:none}
+
+    .tabpill.drag-over{
+      outline:3px solid var(--accent);
+      outline-offset:3px;
+      background:linear-gradient(135deg,var(--button-bg),var(--button-bg2));
+      color:var(--button-text);
+      transform:scale(1.08);
+      transition:.12s ease;
+    }
+    .tile.dragging-source{opacity:.35;transform:scale(.96);transition:.15s ease}
+
+    /* Geschiedenis zijpaneel */
+    .histSidebar{
+      position:fixed;top:0;right:-380px;width:360px;height:100vh;z-index:900;
+      background:var(--panel-strong);border-left:1px solid var(--line);
+      box-shadow:-8px 0 40px rgba(20,33,50,.12);
+      transition:right .28s cubic-bezier(.4,0,.2,1);
+      overflow:hidden;display:flex;flex-direction:column;
+    }
+    .histSidebar.open{right:0}
+    .histSidebarInner{
+      flex:1;overflow-y:auto;padding:20px 18px;
+    }
+    .histSection{margin-bottom:4px}
+    .histRow{
+      display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;
+      background:var(--input-bg);border:1px solid var(--line);border-radius:16px;padding:10px;
+      cursor:grab;touch-action:none;user-select:none;transition:.12s ease;
+      font-size:.92rem;
+    }
+    .histRow:active{cursor:grabbing;transform:scale(.98)}
+    .histRow .tileIcon{width:42px;height:42px;border-radius:14px;font-size:1.2rem}
+    .histMeta{min-width:0}
+    .histMeta strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .histMeta span{display:block;color:var(--muted);font-size:.82rem}
+    .histBtns{display:flex;gap:6px;flex-wrap:wrap}
+    .histBtns button{padding:7px 10px;border-radius:12px;border:0;background:#f7f8fb;cursor:pointer;font:inherit;font-weight:700;font-size:.82rem}
+    .histBtns .danger{color:#b42318}
+    body.history-open .shell{margin-right:370px;transition:margin-right .28s cubic-bezier(.4,0,.2,1)}
+
+    /* Drop op map highlight */
+    .tile.folder-drop-target{
+      outline:3px solid var(--accent);
+      outline-offset:3px;
+      background:rgba(200,95,141,.12);
+      transform:scale(1.03);
+      transition:.12s ease;
+    }
+    .tile.order-drop-before{
+      box-shadow:inset 6px 0 0 var(--accent), var(--shadow);
+      outline:2px solid rgba(200,95,141,.30);
+      outline-offset:2px;
+    }
+    .tile.order-drop-after{
+      box-shadow:inset -6px 0 0 var(--accent), var(--shadow);
+      outline:2px solid rgba(200,95,141,.30);
+      outline-offset:2px;
+    }
+
+    @media (max-width:800px){
+      .histSidebar{width:300px;right:-320px}
+      body.history-open .shell{margin-right:0}
+    }
+body.deep-edit #appTitle,
+    body.deep-edit #appSubtitle,
+    body.deep-edit .tabpill,
+    body.deep-edit .tileTitle,
+    body.deep-edit .tileSub,
+    body.deep-edit .meta[contenteditable="true"]{
+      outline:2px dashed rgba(200,95,141,.35);
+      outline-offset:4px;
+      border-radius:12px;
+    }
+
+    @media (max-width:900px){
+      .top{grid-template-columns:1fr}
+      .topActions{justify-content:flex-start}
+      .grid{grid-template-columns:1fr}
+      .picker{grid-template-columns:repeat(5,minmax(0,1fr))}
+      .shell{padding:12px}
+      .logo{width:72px;height:72px;border-radius:24px}
+    }
+
+    @media (max-width:640px){
+      .panel{padding:14px;border-radius:24px}
+      .tile{min-height:190px}
+      .tabpill,.chip,.btn.small,.seg{padding:10px 12px}
+      .folderRow{grid-template-columns:48px 1fr}
+      .rowBtns{grid-column:1/-1}
+      .toolbar{align-items:stretch}
+      .search{min-width:0}
+      .tabTools{gap:8px}
+    }
+  </style>
+</head>
+<body class="user-mode">
+  <div class="shell">
+    <div class="top">
+      <div class="brand">
+        <div class="logo">M</div>
+        <div>
+          <h1 class="title" id="appTitle">Maartens Place</h1>
+          <p class="subtitle" id="appSubtitle">Gemaakt door je lieftallige, intelligente minion.</p>
+        </div>
+      </div>
+
+      <div class="topActions">
+        <label class="switch">
+          <input type="checkbox" id="modeToggleCheck">
+          <span class="slider"></span>
+          <span>Bewerkmodus</span>
+        </label>
+        <button class="btn ghost" id="openDrawingBtn">Tekenen</button>
+        <button class="iconBtn" id="openSettingsBtn">⚙️</button>
+        <button class="iconBtn" id="openHistoryBtn" title="Geschiedenis">🕘</button>
+      </div>
+    </div>
+
+    <section class="panel">
+      <div class="tabRow" id="topTabbar"></div>
+
+      <div class="tabTools edit-only" id="tabTools">
+        <button class="btn small" id="addTabBtn">+ Tabblad</button>
+        <button class="btn small" id="renameTabBtn">Tabblad hernoemen</button>
+        <button class="btn small" id="deleteTabBtn">Tabblad verwijderen</button>
+      </div>
+
+      <div class="quickRow edit-only" id="quickTypeBar" style="margin-top:12px">
+        <button class="chip" data-kind="link">+ Website</button>
+        <button class="chip" data-kind="file">+ Bestand</button>
+        <button class="chip" data-kind="folder">+ Map</button>
+        <button class="chip" data-kind="note">+ Notitie</button>
+        <button class="chip" data-kind="checklist">+ Checklist</button>
+        <button class="chip" data-kind="photo">+ Foto</button>
+        <button class="chip" data-kind="draw">+ Tekenen</button>
+      </div>
+
+      <div class="toolbar">
+        <input class="search" id="searchInput" placeholder="Zoek in alle tegels..." />
+        <div class="segWrap">
+          <button class="seg active" data-view="comfort">Comfort</button>
+          <button class="seg" data-view="compact">Compact</button>
+        </div>
+      </div>
+
+      <div class="board">
+        <div class="tiles" id="tiles"></div>
+        <div class="empty" id="emptyState">Dit tabblad is nog leeg.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="appToast" id="appToast"></div>
+
+  <dialog id="tileDialog">
+    <form class="modal" id="tileForm" method="dialog">
+      <h3 id="tileDialogTitle">Nieuwe tegel</h3>
+      <p>Kies alleen wat nodig is voor dit type tegel.</p>
+
+      <div class="grid">
+        <label>
+          Soort
+          <select id="tileType" class="field">
+            <option value="link" selected>Website</option>
+            <option value="file">Bestand</option>
+            <option value="folder">Map</option>
+            <option value="note">Notitie</option>
+            <option value="checklist">Checklist</option>
+            <option value="photo">Foto</option>
+            <option value="draw">Tekenen</option>
+          </select>
+        </label>
+
+        <label id="tileNameWrap">
+          Naam
+          <input id="tileName" class="field" placeholder="Naam van de tegel" />
+        </label>
+
+        <label>
+          Icoon
+          <input id="tileEmoji" class="field" maxlength="3" placeholder="📁" />
+          <div class="picker" id="iconPicker"></div>
+          <div class="fileChooserHint">Plak een internetafbeelding of gebruik een lokale afbeelding als tegel-icoon.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <input id="tileIconUrl" class="field" placeholder="Plak hier een link naar een afbeelding" style="flex:1;min-width:220px" />
+            <button type="button" class="btn small" id="searchTileIconGoogleBtn">Zoek op Google</button>
+            <button type="button" class="btn small" id="clearTileIconUrlBtn">Afbeelding wissen</button>
+          </div>
+          <div id="tileIconUrlPreviewWrap" style="margin-top:10px;display:none">
+            <div style="background:#f6f8fc;border:1px solid #d9e2f0;border-radius:16px;padding:14px;display:flex;justify-content:center;align-items:center;min-height:140px">
+              <img id="tileIconUrlPreview" alt="" style="max-width:100%;max-height:180px;border-radius:14px;display:none" />
+              <div id="tileIconUrlPreviewEmpty" style="color:#6b7280">Nog geen internetafbeelding gekozen</div>
+            </div>
+            <div class="fileChooserHint" style="margin-top:8px">De Google-knop opent Google Afbeeldingen in een nieuw tabblad. Plak daarna de afbeeldingslink hier.</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <button type="button" class="btn small" id="applyTileIconUrlBtn">Gebruik internetafbeelding</button>
+            <input id="tileIconFileInput" class="field" type="file" accept="image/*" style="display:none" />
+            <button type="button" class="btn small" id="chooseTileIconFileBtn">Kies afbeelding</button>
+            <button type="button" class="btn small" id="saveCurrentTileIconBtn">Bewaar als icoon</button>
+            <button type="button" class="btn small" id="removeTileIconBtn">Icoon verwijderen</button>
+          </div>
+        </label>
+
+        <label id="tileUrlWrap" class="full">
+          URL
+          <input id="tileUrl" class="field" placeholder="https://..." />
+        </label>
+
+        <label class="full" id="tileBodyWrap">
+          Tekst
+          <textarea id="tileBody" class="field" rows="6" placeholder="Typ hier..."></textarea>
+        </label>
+
+        <label>
+          Grootte
+          <select id="tileSize" class="field">
+            <option value="normal">Normaal</option>
+            <option value="large">Breed</option>
+          </select>
+        </label>
+
+        <label id="tileFileWrap" class="full">
+          Bestand-snelkoppeling
+          <input id="tileFileLink" class="field" placeholder="Plak hier de link of locatie naar het bestand" />
+          <div class="fileChooserHint">De app slaat het bestand zelf niet op. In Chrome/Edge kan hij een lokale bestandssnelkoppeling onthouden. In andere browsers valt dit terug op alleen de bestandsnaam; gebruik dan een online link of gedeelde locatie.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <input id="tileFileInput" class="field" type="file" style="display:none" />
+            <button type="button" class="btn small" id="chooseTileFileBtn">Bestand kiezen en snelkoppeling maken</button>
+            <button type="button" class="btn small" id="removeTileFileBtn">Snelkoppeling wissen</button>
+          </div>
+        </label>
+
+        <label id="tileImageWrap" class="full">
+          Foto
+          <input id="tileImage" class="field" type="file" accept="image/*" />
+          <div class="fileChooserHint">Lokale foto's blijven lokaal. Wil je dat de foto via Supabase op andere apparaten zichtbaar is? Plak dan hieronder een directe https-afbeeldingslink.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <input id="tileImageUrl" class="field" placeholder="Plak hier een directe link naar een afbeelding" style="flex:1;min-width:220px" />
+            <button type="button" class="btn small" id="searchTileImageGoogleBtn">Zoek op Google</button>
+            <button type="button" class="btn small" id="applyTileImageUrlBtn">Gebruik link</button>
+            <button type="button" class="btn small" id="removeTileImageBtn">Foto verwijderen</button>
+          </div>
+        </label>
+
+        <div id="tileImagePreviewWrap" class="full" style="display:none">
+          <div style="font-weight:700;margin-bottom:8px">Voorbeeld</div>
+          <div style="background:#f6f8fc;border:1px solid #d9e2f0;border-radius:16px;padding:14px;display:flex;justify-content:center;align-items:center;min-height:220px">
+            <img id="tileImagePreview" alt="" style="max-width:100%;max-height:50vh;border-radius:14px;display:none" />
+            <div id="tileImagePreviewEmpty" style="color:#6b7280">Nog geen foto gekozen</div>
+          </div>
+        </div>
+
+        <div id="tileChecklistWrap" class="full" style="display:none">
+          <div style="font-weight:700;margin-bottom:8px">Checklist</div>
+          <div id="tileChecklistEditor" class="checklist"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <input id="tileChecklistNew" class="field" placeholder="Nieuw punt" />
+            <button type="button" class="btn small" id="tileChecklistAddBtn">Toevoegen</button>
+          </div>
+        </div>
+
+        <div id="tileDrawingWrap" class="full">
+          <button type="button" class="btn" id="openDrawingFromTileBtn">Tegeltekening maken of aanpassen</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn primary">Opslaan</button>
+        <button type="button" class="btn" id="cancelTileBtn">Annuleren</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="tabDialog">
+    <form class="modal" id="tabForm" method="dialog">
+      <h3 id="tabDialogTitle">Nieuw tabblad</h3>
+      <p>Maak een nieuw tabblad of pas het huidige aan.</p>
+      <div class="grid">
+        <label>
+          Naam
+          <input id="tabName" class="field" placeholder="Bijv. Jaarlijks" />
+        </label>
+        <label>
+          Beschrijving
+          <input id="tabDescription" class="field" placeholder="Korte uitleg" />
+        </label>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn primary">Opslaan</button>
+        <button type="button" class="btn" id="cancelTabBtn">Annuleren</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="settingsDialog">
+    <form class="modal" id="settingsForm" method="dialog">
+      <h3>Instellingen</h3>
+      <p>Werkend op telefoon én laptop. Teksten zelf pas je alleen aan via intensief bewerken.</p>
+      <div class="grid">
+        <label>
+          Thema
+          <select id="settingsTheme" class="field">
+            <option value="rose">Roze zacht</option>
+            <option value="ocean">Blauw rustig</option>
+            <option value="forest">Groen natuur</option>
+            <option value="sunset">Zonsondergang</option>
+            <option value="night">Donkere avond</option>
+                      </select>
+        </label>
+        <label>
+          Letterstijl
+          <select id="settingsFontFamily" class="field">
+            <option value='Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'>Modern</option>
+            <option value='Arial,Helvetica,sans-serif'>Arial</option>
+            <option value='Georgia,"Times New Roman",serif'>Georgia</option>
+            <option value='Verdana,Geneva,sans-serif'>Verdana</option>
+            <option value='"Trebuchet MS",Tahoma,sans-serif'>Trebuchet</option>
+          </select>
+        </label>
+        <label>
+          Ouwe lul-modus
+          <button type="button" class="btn" id="toggleSeniorBtn">Ouwe lul</button>
+        </label>
+        <label>
+          Intensief bewerken
+          <select id="settingsDeepEdit" class="field">
+            <option value="off">Uit</option>
+            <option value="on">Alleen voor leuke stagiaires</option>
+          </select>
+        </label>
+        <label class="full">
+          Back-up
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button type="button" class="btn" id="exportBtn">Exporteren</button>
+            <button type="button" class="btn" id="importBtn">Importeren</button>
+          </div>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn primary">Opslaan</button>
+        <button type="button" class="btn" id="cancelSettingsBtn">Sluiten</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="deepEditDialog">
+    <div class="modal">
+      <h3>Intensief bewerken</h3>
+      <p>Voer de code in om alle teksten van de app te mogen aanpassen.</p>
+      <div class="pinPanel">
+        <div class="pinDisplay" id="pinDisplay">••••••</div>
+        <div class="pinPad" id="pinPad">
+          <button type="button" class="pinKey" data-key="1">1</button>
+          <button type="button" class="pinKey" data-key="2">2</button>
+          <button type="button" class="pinKey" data-key="3">3</button>
+          <button type="button" class="pinKey" data-key="4">4</button>
+          <button type="button" class="pinKey" data-key="5">5</button>
+          <button type="button" class="pinKey" data-key="6">6</button>
+          <button type="button" class="pinKey" data-key="7">7</button>
+          <button type="button" class="pinKey" data-key="8">8</button>
+          <button type="button" class="pinKey" data-key="9">9</button>
+          <button type="button" class="pinKey" id="pinClearBtn">Wis</button>
+          <button type="button" class="pinKey" data-key="0">0</button>
+          <button type="button" class="pinKey primary" id="pinOkBtn">OK</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn" id="cancelDeepEditBtn">Annuleren</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="fileOpenDialog">
+    <form class="modal" id="fileOpenForm" method="dialog">
+      <h3>Bestand openen</h3>
+      <p>Bestand-snelkoppelingen worden direct in een nieuw tabblad geopend.</p>
+      <div class="grid">
+        <label><input type="radio" name="openMethod" value="preview" checked> Voorbeeld in de app</label>
+        <label><input type="radio" name="openMethod" value="newtab"> Direct in nieuw tabblad</label>
+        <label><input type="radio" name="openMethod" value="download"> Eerst downloaden</label>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn primary">Openen</button>
+        <button type="button" class="btn" id="cancelFileOpenBtn">Annuleren</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="previewDialog">
+    <div class="modal">
+      <h3 id="previewTitle">Voorbeeld</h3>
+      <p id="previewSubtitle">Bestand bekijken</p>
+      <div class="meta" id="previewArea" style="min-height:220px"></div>
+      <div class="actions">
+        <button type="button" class="btn primary" id="previewOpenNewTabBtn">Open in nieuw tabblad</button>
+        <button type="button" class="btn" id="previewDownloadBtn">Downloaden</button>
+        <button type="button" class="btn" id="closePreviewBtn">Sluiten</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="folderDialog">
+    <div class="modal">
+      <div class="folderTopBar" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div>
+          <h3 id="folderTitle">Map</h3>
+          <p id="folderSubtitle">Bekijk de inhoud van deze map.</p>
+        </div>
+        <button type="button" class="btn" id="folderCloseBtn" aria-label="Sluiten">✕</button>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn primary" id="folderAddFilesBtn">Bestand-snelkoppeling toevoegen</button>
+        <button type="button" class="btn" id="folderAddExistingBtn">Bestaande tegel toevoegen</button>
+        <button type="button" class="btn" id="folderAddTileBtn">Nieuwe tegel</button>
+        <button type="button" class="btn" id="folderAddFolderBtn">Map toevoegen</button>
+      </div>
+      <div class="dropzone" id="folderDropzone" style="margin:12px 0">
+        <div><strong>Bestanden worden niet opgeslagen</strong><div>Gebruik een bestand-snelkoppeling met een online link of gedeelde locatie.</div></div>
+      </div>
+      <div class="folderList" id="folderTiles"></div>
+      <div class="empty" id="folderEmpty">Deze map is nog leeg.</div>
+    </div>
+  </dialog>
+
+  <dialog id="existingTileDialog">
+    <div class="modal">
+      <h3>Bestaande tegel toevoegen</h3>
+      <p>Kies een tegel uit het huidige tabblad om aan deze map toe te voegen.</p>
+      <div class="folderList" id="existingTileList"></div>
+      <div class="empty" id="existingTileEmpty">Geen beschikbare tegels in dit tabblad.</div>
+      <div class="actions">
+        <button type="button" class="btn" id="existingTileCloseBtn">Sluiten</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="drawingDialog">
+    <div class="modal">
+      <h3>Tekenen</h3>
+      <p>Teken iets op telefoon of laptop en plaats het op de pagina of als tegel.</p>
+      <div class="colorRow" id="drawColorRow"></div>
+      <div class="colorMaker">
+        <input type="color" id="drawCustomColor" class="field" value="#1d2a3a" aria-label="Eigen tekenkleur">
+        <button type="button" class="btn" id="drawApplyCustomColorBtn">Gebruik eigen kleur</button>
+      </div>
+      <div class="toolRow">
+        <div class="rangeWrap">
+          <label for="drawSizeRange">Pendikte</label>
+          <input type="range" id="drawSizeRange" min="2" max="30" step="1" value="4">
+          <strong id="drawSizeValue">4</strong>
+        </div>
+        <button type="button" class="btn toolBtn active" id="drawPenBtn">Pen</button>
+        <button type="button" class="btn toolBtn" id="drawEraserBtn">Gum</button>
+      </div>
+      <canvas id="doodleCanvas" class="drawCanvas" width="900" height="480"></canvas>
+      <div class="actions">
+        <button type="button" class="btn" id="drawClearBtn">Wissen</button>
+        <button type="button" class="btn primary" id="drawSaveBtn">Plaats op pagina</button>
+        <button type="button" class="btn" id="drawSaveTileBtn">Opslaan als tegel</button>
+        <button type="button" class="btn" id="drawSaveIconBtn">Opslaan als icoon</button>
+        <button type="button" class="btn" id="closeDrawingBtn">Sluiten</button>
+      </div>
+    </div>
+  </dialog>
+
+
+  <dialog id="confirmDialog">
+    <div class="modal">
+      <h3 id="confirmTitle">Weet je het zeker?</h3>
+      <p class="confirmText" id="confirmMessage">Deze actie kan niet zomaar terug.</p>
+      <div class="actions">
+        <button type="button" class="btn" id="confirmCancelBtn">Annuleren</button>
+        <button type="button" class="btn primary" id="confirmOkBtn">Ja, doorgaan</button>
+      </div>
+    </div>
+  </dialog>
+
+  <aside class="histSidebar" id="historySidebar">
+    <div class="histSidebarInner">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px">
+        <h3 style="margin:0;font-size:1.3rem">🕘 Geschiedenis</h3>
+        <button type="button" class="btn small" id="historyCloseBtn" aria-label="Sluiten">✕</button>
+      </div>
+      <p style="margin:0 0 12px;color:var(--muted);font-size:.9rem">Sleep naar een tabblad of map om te herstellen.</p>
+
+      <div class="histSection">
+        <div class="label">Maartens tegels</div>
+        <div id="historyUserTiles" class="folderList"></div>
+        <div class="empty" id="historyUserEmpty" style="font-size:.9rem">Nog geen eigen tegels.</div>
+      </div>
+
+      <div class="histSection" style="margin-top:18px">
+        <div class="label">Standaard</div>
+        <div id="historyDefaultTiles" class="folderList"></div>
+      </div>
+    </div>
+  </aside>
+
+  <input type="file" id="importFileInput" hidden accept=".json,application/json" />
+  <input type="file" id="folderFileInput" hidden multiple />
+  <input type="file" id="canvasPhotoInput" hidden accept="image/*" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const STORAGE_KEY = 'maartens-place-universal-v1';
+    const LOCAL_ASSETS_KEY = 'maartens-place-local-assets-v1';
+    const SUPABASE_URL = 'https://tgasilapvirxiquqjflv.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRnYXNpbGFwdmlyeGlxdXFqZmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1ODE3NTksImV4cCI6MjA5NDE1Nzc1OX0.2U8VGYk3CCQ0eiTTzhD2v3ZokEB5BVrJCQ_0NiaE6mc';
+    const MP_DASHBOARD_ID = 'maartens-place-main';
+    let mpSupabase = null;
+    let mpDbReady = false;
+    let mpDbLoading = false;
+    let mpDbSyncing = false;
+    let mpDbSyncTimer = null;
+    const DEFAULT_ICONS = ['📁','📝','📌','📷','🎵','📚','🌐','✅','⭐','☎️','🧾','🏠','🗂️','💡','⚙️','🔒'];
+    const THEME_PRESETS = {
+      rose:{accent:'#c85f8d',bg1:'#f6eef2',bg2:'#efe7ed',panel:'rgba(255,255,255,.78)',panelStrong:'#ffffff',text:'#16243a',muted:'#667892',line:'#e8dee5',buttonBg:'#c85f8d',buttonBg2:'#df84a9',buttonText:'#ffffff',softButton:'rgba(255,255,255,.82)',softButtonText:'#16243a',inputBg:'#ffffff',tileBg:'rgba(255,255,255,.78)'},
+      ocean:{accent:'#3d74d8',bg1:'#eef4ff',bg2:'#e4edf9',panel:'rgba(255,255,255,.80)',panelStrong:'#ffffff',text:'#16243a',muted:'#5e7290',line:'#d9e3f3',buttonBg:'#3d74d8',buttonBg2:'#6c98ec',buttonText:'#ffffff',softButton:'rgba(255,255,255,.84)',softButtonText:'#16243a',inputBg:'#ffffff',tileBg:'rgba(255,255,255,.80)'},
+      forest:{accent:'#2f8b57',bg1:'#edf7f0',bg2:'#e4f0e6',panel:'rgba(255,255,255,.82)',panelStrong:'#ffffff',text:'#173124',muted:'#587467',line:'#d6e6da',buttonBg:'#2f8b57',buttonBg2:'#57aa7b',buttonText:'#ffffff',softButton:'rgba(255,255,255,.84)',softButtonText:'#173124',inputBg:'#ffffff',tileBg:'rgba(255,255,255,.82)'},
+      sunset:{accent:'#d87a3d',bg1:'#fff1e8',bg2:'#f7e6db',panel:'rgba(255,255,255,.80)',panelStrong:'#ffffff',text:'#3a2616',muted:'#7f6452',line:'#ecd8cb',buttonBg:'#d87a3d',buttonBg2:'#eca06e',buttonText:'#ffffff',softButton:'rgba(255,255,255,.84)',softButtonText:'#3a2616',inputBg:'#ffffff',tileBg:'rgba(255,255,255,.80)'},
+      night:{accent:'#6f72e8',bg1:'#1f2433',bg2:'#2b3044',panel:'rgba(34,39,54,.86)',panelStrong:'#2d3348',text:'#f5f7fb',muted:'#bcc6df',line:'#434b66',buttonBg:'#6f72e8',buttonBg2:'#9194f0',buttonText:'#ffffff',softButton:'rgba(50,57,78,.92)',softButtonText:'#f5f7fb',inputBg:'#f5f7fb',tileBg:'rgba(45,51,72,.94)'}
+    };
+
+    const defaultState = () => ({
+      title: 'Maartens Place',
+      subtitle: 'Gemaakt door je lieftallige, intelligente minion.',
+      theme: 'rose',
+      accent: '#c85f8d',
+      fontFamily: 'Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+      viewMode: 'comfort',
+      editMode: false,
+      seniorMode: false,
+      deepEdit: false,
+      customTheme: {bg1:'#f6eef2', bg2:'#efe7ed', text:'#16243a', panelStrong:'#ffffff', buttonBg:'#c85f8d', buttonBg2:'#df84a9', buttonText:'#ffffff', softButton:'#ffffff', softButtonText:'#16243a', inputBg:'#ffffff', tileBg:'#ffffff'},
+      selectedTabId: 'tab-start',
+      canvasItems: [],
+      savedIcons: [],
+      tileHistory: [],
+      defaultHistory: [],
+      tabs: [
+        { id:'tab-start', name:'Favorieten', description:'Alles wat belangrijk is.', tiles:[] },
+        { id:'tab-year', name:'Jaarlijks', description:'Dingen die je jaarlijks nodig hebt.', tiles:[] },
+        { id:'tab-sys', name:'Systemen', description:'Voor dingen die je jaarlijks nodig hebt.', tiles:[] },
+        { id:'tab-em', name:'Nood', description:'Voor noodgevallen.', tiles:[] }
+      ]
+    });
+
+    const state = loadState();
+
+    let editingTileId = null;
+    let editingTabId = null;
+    let pendingImageData = null;
+    let pendingFileData = null;
+    let pendingFileHandleKey = '';
+    let pendingFileName = '';
+    let pendingFileType = '';
+    let currentChecklistDraft = [];
+    let drawColor = '#1d2a3a';
+    let drawSize = 4;
+    let drawTool = 'pen';
+    let currentFileTileId = null;
+    let currentPreviewTile = null;
+    let currentFolderTileId = null;
+    let addingTileToFolder = false;
+    let addingFolderToFolder = false;
+    let pinCodeBuffer = '';
+    let drawingTargetTileId = null;
+    let drawingTargetCanvasItemId = null;
+    let pendingTileIconImage = null;
+
+    const els = {
+      appTitle: document.getElementById('appTitle'),
+      appSubtitle: document.getElementById('appSubtitle'),
+      modeToggleCheck: document.getElementById('modeToggleCheck'),
+      topTabbar: document.getElementById('topTabbar'),
+      tabTools: document.getElementById('tabTools'),
+      addTabBtn: document.getElementById('addTabBtn'),
+      renameTabBtn: document.getElementById('renameTabBtn'),
+      deleteTabBtn: document.getElementById('deleteTabBtn'),
+      quickTypeBar: document.getElementById('quickTypeBar'),
+      searchInput: document.getElementById('searchInput'),
+      tiles: document.getElementById('tiles'),
+      emptyState: document.getElementById('emptyState'),
+      appToast: document.getElementById('appToast'),
+
+      tileDialog: document.getElementById('tileDialog'),
+      tileForm: document.getElementById('tileForm'),
+      tileDialogTitle: document.getElementById('tileDialogTitle'),
+      tileType: document.getElementById('tileType'),
+      tileNameWrap: document.getElementById('tileNameWrap'),
+      tileUrlWrap: document.getElementById('tileUrlWrap'),
+      tileBodyWrap: document.getElementById('tileBodyWrap'),
+      tileFileWrap: document.getElementById('tileFileWrap'),
+      tileImageWrap: document.getElementById('tileImageWrap'),
+      tileDrawingWrap: document.getElementById('tileDrawingWrap'),
+      tileName: document.getElementById('tileName'),
+      tileUrl: document.getElementById('tileUrl'),
+      tileBody: document.getElementById('tileBody'),
+      tileSize: document.getElementById('tileSize'),
+      tileEmoji: document.getElementById('tileEmoji'),
+      tileImage: document.getElementById('tileImage'),
+      tileImageUrl: document.getElementById('tileImageUrl'),
+      searchTileImageGoogleBtn: document.getElementById('searchTileImageGoogleBtn'),
+      applyTileImageUrlBtn: document.getElementById('applyTileImageUrlBtn'),
+      tileImagePreviewWrap: document.getElementById('tileImagePreviewWrap'),
+      tileImagePreview: document.getElementById('tileImagePreview'),
+      tileImagePreviewEmpty: document.getElementById('tileImagePreviewEmpty'),
+      tileFileInput: document.getElementById('tileFileInput'),
+      tileFileLink: document.getElementById('tileFileLink'),
+      chooseTileFileBtn: document.getElementById('chooseTileFileBtn'),
+      removeTileImageBtn: document.getElementById('removeTileImageBtn'),
+      removeTileFileBtn: document.getElementById('removeTileFileBtn'),
+      openDrawingFromTileBtn: document.getElementById('openDrawingFromTileBtn'),
+      tileChecklistWrap: document.getElementById('tileChecklistWrap'),
+      tileChecklistEditor: document.getElementById('tileChecklistEditor'),
+      tileChecklistNew: document.getElementById('tileChecklistNew'),
+      tileChecklistAddBtn: document.getElementById('tileChecklistAddBtn'),
+      iconPicker: document.getElementById('iconPicker'),
+      tileIconUrl: document.getElementById('tileIconUrl'),
+      tileIconUrlPreviewWrap: document.getElementById('tileIconUrlPreviewWrap'),
+      tileIconUrlPreview: document.getElementById('tileIconUrlPreview'),
+      tileIconUrlPreviewEmpty: document.getElementById('tileIconUrlPreviewEmpty'),
+      searchTileIconGoogleBtn: document.getElementById('searchTileIconGoogleBtn'),
+      clearTileIconUrlBtn: document.getElementById('clearTileIconUrlBtn'),
+      applyTileIconUrlBtn: document.getElementById('applyTileIconUrlBtn'),
+      tileIconFileInput: document.getElementById('tileIconFileInput'),
+      chooseTileIconFileBtn: document.getElementById('chooseTileIconFileBtn'),
+      saveCurrentTileIconBtn: document.getElementById('saveCurrentTileIconBtn'),
+      removeTileIconBtn: document.getElementById('removeTileIconBtn'),
+      cancelTileBtn: document.getElementById('cancelTileBtn'),
+
+      tabDialog: document.getElementById('tabDialog'),
+      tabForm: document.getElementById('tabForm'),
+      tabDialogTitle: document.getElementById('tabDialogTitle'),
+      tabName: document.getElementById('tabName'),
+      tabDescription: document.getElementById('tabDescription'),
+      cancelTabBtn: document.getElementById('cancelTabBtn'),
+
+      settingsDialog: document.getElementById('settingsDialog'),
+      settingsForm: document.getElementById('settingsForm'),
+      settingsTheme: document.getElementById('settingsTheme'),
+      settingsFontFamily: document.getElementById('settingsFontFamily'),
+      settingsDeepEdit: document.getElementById('settingsDeepEdit'),
+      toggleSeniorBtn: document.getElementById('toggleSeniorBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      importBtn: document.getElementById('importBtn'),
+      cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
+
+      deepEditDialog: document.getElementById('deepEditDialog'),
+      pinDisplay: document.getElementById('pinDisplay'),
+      pinPad: document.getElementById('pinPad'),
+      pinClearBtn: document.getElementById('pinClearBtn'),
+      pinOkBtn: document.getElementById('pinOkBtn'),
+      cancelDeepEditBtn: document.getElementById('cancelDeepEditBtn'),
+
+      fileOpenDialog: document.getElementById('fileOpenDialog'),
+      fileOpenForm: document.getElementById('fileOpenForm'),
+      cancelFileOpenBtn: document.getElementById('cancelFileOpenBtn'),
+
+      previewDialog: document.getElementById('previewDialog'),
+      previewTitle: document.getElementById('previewTitle'),
+      previewSubtitle: document.getElementById('previewSubtitle'),
+      previewArea: document.getElementById('previewArea'),
+      previewOpenNewTabBtn: document.getElementById('previewOpenNewTabBtn'),
+      previewDownloadBtn: document.getElementById('previewDownloadBtn'),
+      closePreviewBtn: document.getElementById('closePreviewBtn'),
+
+      folderDialog: document.getElementById('folderDialog'),
+      folderTitle: document.getElementById('folderTitle'),
+      folderSubtitle: document.getElementById('folderSubtitle'),
+      folderDropzone: document.getElementById('folderDropzone'),
+      folderTiles: document.getElementById('folderTiles'),
+      folderEmpty: document.getElementById('folderEmpty'),
+      folderAddFilesBtn: document.getElementById('folderAddFilesBtn'),
+      folderAddExistingBtn: document.getElementById('folderAddExistingBtn'),
+      folderAddTileBtn: document.getElementById('folderAddTileBtn'),
+      folderAddFolderBtn: document.getElementById('folderAddFolderBtn'),
+      folderCloseBtn: document.getElementById('folderCloseBtn'),
+
+      existingTileDialog: document.getElementById('existingTileDialog'),
+      existingTileList: document.getElementById('existingTileList'),
+      existingTileEmpty: document.getElementById('existingTileEmpty'),
+      existingTileCloseBtn: document.getElementById('existingTileCloseBtn'),
+
+      openDrawingBtn: document.getElementById('openDrawingBtn'),
+      drawingDialog: document.getElementById('drawingDialog'),
+      doodleCanvas: document.getElementById('doodleCanvas'),
+      drawColorRow: document.getElementById('drawColorRow'),
+      drawCustomColor: document.getElementById('drawCustomColor'),
+      drawApplyCustomColorBtn: document.getElementById('drawApplyCustomColorBtn'),
+      drawSizeRange: document.getElementById('drawSizeRange'),
+      drawSizeValue: document.getElementById('drawSizeValue'),
+      drawPenBtn: document.getElementById('drawPenBtn'),
+      drawEraserBtn: document.getElementById('drawEraserBtn'),
+      drawClearBtn: document.getElementById('drawClearBtn'),
+      drawSaveBtn: document.getElementById('drawSaveBtn'),
+      drawSaveTileBtn: document.getElementById('drawSaveTileBtn'),
+      drawSaveIconBtn: document.getElementById('drawSaveIconBtn'),
+      closeDrawingBtn: document.getElementById('closeDrawingBtn'),
+
+      confirmDialog: document.getElementById('confirmDialog'),
+      confirmTitle: document.getElementById('confirmTitle'),
+      confirmMessage: document.getElementById('confirmMessage'),
+      confirmCancelBtn: document.getElementById('confirmCancelBtn'),
+      confirmOkBtn: document.getElementById('confirmOkBtn'),
+
+      importFileInput: document.getElementById('importFileInput'),
+      folderFileInput: document.getElementById('folderFileInput'),
+      canvasPhotoInput: document.getElementById('canvasPhotoInput'),
+      openSettingsBtn: document.getElementById('openSettingsBtn'),
+      openHistoryBtn: document.getElementById('openHistoryBtn'),
+      historySidebar: document.getElementById('historySidebar'),
+      historyCloseBtn: document.getElementById('historyCloseBtn'),
+      historyUserTiles: document.getElementById('historyUserTiles'),
+      historyUserEmpty: document.getElementById('historyUserEmpty'),
+      historyDefaultTiles: document.getElementById('historyDefaultTiles')
+    };
+
+    setupIconPicker();
+    bindEvents();
+    initDrawing();
+    applyTheme();
+    render();
+    bootSupabase();
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return defaultState();
+        const parsed = JSON.parse(raw);
+        if(!parsed.tabs?.length) return defaultState();
+        if(!parsed.canvasItems) parsed.canvasItems = [];
+        if(!parsed.savedIcons) parsed.savedIcons = [];
+        if(!parsed.tileHistory) parsed.tileHistory = [];
+        if(!parsed.defaultHistory) parsed.defaultHistory = [];
+        return parsed;
+      }catch{
+        return defaultState();
+      }
+    }
+    function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function createId(){ return Math.random().toString(36).slice(2,10); }
+
+    const FILE_HANDLE_DB = 'maartens-place-file-handles-v1';
+    const FILE_HANDLE_STORE = 'handles';
+    function openFileHandleDb(){
+      return new Promise((resolve, reject) => {
+        if(!('indexedDB' in window)){ reject(new Error('IndexedDB niet beschikbaar')); return; }
+        const req = indexedDB.open(FILE_HANDLE_DB, 1);
+        req.onupgradeneeded = () => req.result.createObjectStore(FILE_HANDLE_STORE);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function putFileHandle(key, handle){
+      const db = await openFileHandleDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(FILE_HANDLE_STORE, 'readwrite');
+        tx.objectStore(FILE_HANDLE_STORE).put(handle, key);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+    async function getFileHandle(key){
+      if(!key) return null;
+      const db = await openFileHandleDb();
+      return new Promise((resolve, reject) => {
+        const req = db.transaction(FILE_HANDLE_STORE, 'readonly').objectStore(FILE_HANDLE_STORE).get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function deleteFileHandle(key){
+      if(!key) return;
+      const db = await openFileHandleDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(FILE_HANDLE_STORE, 'readwrite');
+        tx.objectStore(FILE_HANDLE_STORE).delete(key);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+    async function verifyFileHandlePermission(handle){
+      if(!handle) return false;
+      const opts = {mode:'read'};
+      if((await handle.queryPermission?.(opts)) === 'granted') return true;
+      return (await handle.requestPermission?.(opts)) === 'granted';
+    }
+
+    function currentTab(){ return state.tabs.find(t => t.id === state.selectedTabId) || state.tabs[0]; }
+    function showToast(msg){
+      els.appToast.textContent = msg;
+      els.appToast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(()=>els.appToast.classList.remove('show'), 2200);
+    }
+    function escapeHtml(v=''){
+      return String(v)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#039;');
+    }
+
+    function getThemeColors(){
+      if(state.theme && state.theme !== 'custom' && THEME_PRESETS[state.theme]) return THEME_PRESETS[state.theme];
+      return {
+        accent: state.accent || '#c85f8d',
+        bg1: state.customTheme?.bg1 || '#f6eef2',
+        bg2: state.customTheme?.bg2 || '#efe7ed',
+        panel:'rgba(255,255,255,.78)',
+        panelStrong: state.customTheme?.panelStrong || '#ffffff',
+        text: state.customTheme?.text || '#16243a',
+        muted:'#667892',
+        line:'#e8dee5',
+        buttonBg: state.customTheme?.buttonBg || state.accent || '#c85f8d',
+        buttonBg2: state.customTheme?.buttonBg2 || lighten(state.customTheme?.buttonBg || state.accent || '#c85f8d'),
+        buttonText: state.customTheme?.buttonText || '#ffffff',
+        softButton: state.customTheme?.softButton || 'rgba(255,255,255,.82)',
+        softButtonText: state.customTheme?.softButtonText || (state.customTheme?.text || '#16243a'),
+        inputBg: state.customTheme?.inputBg || '#ffffff',
+        tileBg: state.customTheme?.tileBg || 'rgba(255,255,255,.78)'
+      };
+    }
+
+    function toHexColor(value, fallback='#ffffff'){
+      if(!value) return fallback;
+      if(value.startsWith('#')) return value;
+      const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      if(!match) return fallback;
+      return '#' + [match[1], match[2], match[3]].map(v => Number(v).toString(16).padStart(2,'0')).join('');
+    }
+
+    function confirmAction(message, title='Weet je het zeker?'){
+      return new Promise(resolve => {
+        els.confirmTitle.textContent = title;
+        els.confirmMessage.textContent = message;
+        const cleanup = (result) => {
+          els.confirmOkBtn.removeEventListener('click', onOk);
+          els.confirmCancelBtn.removeEventListener('click', onCancel);
+          els.confirmDialog.removeEventListener('cancel', onCancel);
+          if(els.confirmDialog.open) els.confirmDialog.close();
+          resolve(result);
+        };
+        const onOk = () => cleanup(true);
+        const onCancel = (e) => {
+          if(e?.preventDefault) e.preventDefault();
+          cleanup(false);
+        };
+        els.confirmOkBtn.addEventListener('click', onOk, {once:true});
+        els.confirmCancelBtn.addEventListener('click', onCancel, {once:true});
+        els.confirmDialog.addEventListener('cancel', onCancel, {once:true});
+        els.confirmDialog.showModal();
+      });
+    }
+
+    function applyDeepEditMode(){
+      document.body.classList.toggle('deep-edit', !!state.deepEdit);
+
+      const bindEditable = (el, getter, setter) => {
+        if (!el) return;
+        el.contentEditable = state.deepEdit ? 'true' : 'false';
+        el.spellcheck = false;
+        if (state.deepEdit && !el.dataset.deepBound) {
+          el.addEventListener('blur', () => {
+            setter(el.textContent.trim());
+            saveState();
+          });
+          el.dataset.deepBound = '1';
+        }
+      };
+
+      bindEditable(els.appTitle, () => state.title, v => state.title = v || 'Maartens Place');
+      bindEditable(els.appSubtitle, () => state.subtitle, v => state.subtitle = v || '');
+
+      document.querySelectorAll('.tabpill').forEach(btn => {
+        const tab = state.tabs.find(t => t.name === btn.textContent || t.id === btn.dataset.tabid);
+        btn.contentEditable = state.deepEdit ? 'true' : 'false';
+        btn.spellcheck = false;
+        if (tab) btn.dataset.tabid = tab.id;
+        if (state.deepEdit && !btn.dataset.deepBound) {
+          btn.addEventListener('blur', () => {
+            const t = state.tabs.find(x => x.id === btn.dataset.tabid);
+            if (t) { t.name = btn.textContent.trim() || t.name; saveState(); renderTabs(); }
+          });
+          btn.dataset.deepBound = '1';
+        }
+      });
+    }
+
+    function bindEvents(){
+      els.modeToggleCheck.addEventListener('change', () => {
+        state.editMode = els.modeToggleCheck.checked;
+        applyTheme();
+        render();
+        saveState();
+      });
+
+      els.searchInput.addEventListener('input', renderTiles);
+      els.searchInput.addEventListener('keyup', renderTiles);
+      els.searchInput.addEventListener('change', renderTiles);
+      els.searchInput.addEventListener('search', renderTiles);
+
+      document.querySelector('.segWrap').addEventListener('click', (e) => {
+        const btn = e.target.closest('.seg');
+        if(!btn) return;
+        state.viewMode = btn.dataset.view;
+        applyTheme();
+        render();
+        saveState();
+      });
+
+      els.quickTypeBar.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-kind]');
+        if(!btn) return;
+        openTileDialog(presetForType(btn.dataset.kind));
+      });
+
+      els.addTabBtn.addEventListener('click', () => openTabDialog());
+      els.renameTabBtn.addEventListener('click', () => openTabDialog(currentTab()));
+      els.deleteTabBtn.addEventListener('click', deleteCurrentTab);
+      els.tabForm.addEventListener('submit', saveTabFromDialog);
+      els.cancelTabBtn.addEventListener('click', () => els.tabDialog.close());
+
+      els.tileForm.addEventListener('submit', saveTileFromDialog);
+      els.cancelTileBtn.addEventListener('click', () => {
+        addingTileToFolder = false;
+        addingFolderToFolder = false;
+        els.tileDialog.close();
+      });
+      els.tileChecklistAddBtn.addEventListener('click', () => {
+        const text = (els.tileChecklistNew.value || '').trim();
+        if(!text) return;
+        currentChecklistDraft = currentChecklistDraft || [];
+        currentChecklistDraft.push({id:createId(), text, done:false});
+        els.tileChecklistNew.value = '';
+        renderTileDialogExtras();
+      });
+      els.tileChecklistNew.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          els.tileChecklistAddBtn.click();
+        }
+      });
+      els.tileType.addEventListener('change', () => { applyTypeDefaultsToDialog(); updateTileDialogFields(); renderTileDialogExtras(); });
+      els.tileUrl.addEventListener('input', () => {
+        if(els.tileType.value !== 'link') return;
+        const currentName = (els.tileName.value || '').trim();
+        if(!currentName || currentName === 'Website' || currentName === 'Nieuwe website'){
+          const derived = deriveNameFromWebsiteLink(els.tileUrl.value);
+          if(derived) els.tileName.value = derived;
+        }
+      });
+      els.tileUrl.addEventListener('blur', () => {
+        if(els.tileType.value !== 'link') return;
+        const derived = deriveNameFromWebsiteLink(els.tileUrl.value);
+        if(derived && (!(els.tileName.value || '').trim() || (els.tileName.value || '').trim() === 'Website')) els.tileName.value = derived;
+      });
+      els.tileEmoji.addEventListener('input', () => {
+        pendingTileIconImage = null;
+        if(els.tileIconUrl) els.tileIconUrl.value = '';
+        updateTileIconUrlPreview();
+        highlightIcon(els.tileEmoji.value.trim());
+      });
+      els.tileImage.addEventListener('change', handleTileImageUpload);
+      if(els.tileImageUrl) els.tileImageUrl.addEventListener('input', previewTileImageUrl);
+      if(els.applyTileImageUrlBtn) els.applyTileImageUrlBtn.addEventListener('click', applyTileImageFromUrl);
+      if(els.searchTileImageGoogleBtn) els.searchTileImageGoogleBtn.addEventListener('click', openTileImageGoogleSearch);
+      els.tileFileInput.addEventListener('change', handleTileFileUpload);
+      els.chooseTileFileBtn.addEventListener('click', pickLocalFileShortcut);
+      els.tileFileLink.addEventListener('input', () => {
+        const derived = deriveNameFromFileLink(els.tileFileLink.value);
+        if(derived) els.tileName.value = derived;
+      });
+      els.tileIconUrl.addEventListener('input', () => {
+        updateTileIconUrlPreview();
+        const url = getTileIconUrlFromInput();
+        if(url){
+          pendingTileIconImage = url;
+          els.tileEmoji.value = '';
+        }
+      });
+      els.tileIconUrl.addEventListener('blur', () => {
+        const url = getTileIconUrlFromInput();
+        if(url){
+          els.tileIconUrl.value = url;
+          pendingTileIconImage = url;
+          els.tileEmoji.value = '';
+          updateTileIconUrlPreview();
+          highlightIcon(url);
+        }
+      });
+      els.searchTileIconGoogleBtn.addEventListener('click', openTileIconGoogleImageSearch);
+      els.clearTileIconUrlBtn.addEventListener('click', clearTileIconUrlInput);
+      els.applyTileIconUrlBtn.addEventListener('click', applyTileIconFromUrl);
+      els.chooseTileIconFileBtn.addEventListener('click', () => els.tileIconFileInput.click());
+      els.tileIconFileInput.addEventListener('change', handleTileIconFileUpload);
+      els.saveCurrentTileIconBtn.addEventListener('click', saveCurrentTileDialogIcon);
+      els.removeTileIconBtn.addEventListener('click', removePendingTileIcon);
+      els.openDrawingFromTileBtn.addEventListener('click', openDrawingFromTileDialog);
+      els.removeTileImageBtn.addEventListener('click', async () => {
+        const ok = await confirmAction('Weet je zeker dat je deze foto wilt verwijderen?');
+        if(!ok) return;
+        pendingImageData = null;
+        els.tileImage.value = '';
+        if(els.tileImageUrl) els.tileImageUrl.value = '';
+        showToast('Gekozen foto verwijderd');
+      });
+      els.removeTileFileBtn.addEventListener('click', async () => {
+        const ok = await confirmAction('Weet je zeker dat je deze bestand-snelkoppeling wilt wissen?');
+        if(!ok) return;
+        pendingFileData = null;
+        pendingFileName = '';
+        pendingFileType = '';
+        els.tileFileInput.value = '';
+        els.tileFileLink.value = '';
+        showToast('Bestand-snelkoppeling gewist');
+      });
+
+      els.settingsTheme.addEventListener('change', () => {
+        state.theme = els.settingsTheme.value || 'rose';
+        syncThemeSettingsUI();
+      });
+      els.settingsForm.addEventListener('submit', saveSettings);
+      els.cancelSettingsBtn.addEventListener('click', () => els.settingsDialog.close());
+      els.openSettingsBtn.addEventListener('click', openSettingsDialog);
+      els.toggleSeniorBtn.addEventListener('click', () => {
+        state.seniorMode = !state.seniorMode;
+        applyTheme(); saveState();
+      });
+      els.exportBtn.addEventListener('click', exportBackup);
+      els.importBtn.addEventListener('click', () => els.importFileInput.click());
+      els.importFileInput.addEventListener('change', importBackup);
+
+      els.pinPad.addEventListener('click', handlePinPadClick);
+      els.pinClearBtn.addEventListener('click', () => { pinCodeBuffer=''; updatePinDisplay(); });
+      els.pinOkBtn.addEventListener('click', submitDeepEditCode);
+      els.cancelDeepEditBtn.addEventListener('click', () => { pinCodeBuffer=''; updatePinDisplay(); els.deepEditDialog.close(); });
+
+      els.fileOpenForm.addEventListener('submit', handleFileOpenChoice);
+      els.cancelFileOpenBtn.addEventListener('click', () => els.fileOpenDialog.close());
+      els.previewOpenNewTabBtn.addEventListener('click', () => currentPreviewTile && openStoredFile(currentPreviewTile, 'newtab'));
+      els.previewDownloadBtn.addEventListener('click', () => currentPreviewTile && openStoredFile(currentPreviewTile, 'download'));
+      els.closePreviewBtn.addEventListener('click', () => els.previewDialog.close());
+
+      els.folderCloseBtn.addEventListener('click', () => els.folderDialog.close());
+      els.folderAddFilesBtn.addEventListener('click', openFolderFileShortcutDialog);
+      els.folderAddExistingBtn.addEventListener('click', openExistingTilePicker);
+      els.folderAddTileBtn.addEventListener('click', openFolderTileDialog);
+      els.folderAddFolderBtn.addEventListener('click', openFolderSubfolderDialog);
+      els.folderFileInput.addEventListener('change', async (e) => {
+        const files = [...(e.target.files || [])];
+        if(!files.length || !currentFolderTileId) return;
+        await addFilesToFolder(currentFolderTileId, files);
+        e.target.value = '';
+      });
+      ['dragenter','dragover'].forEach(name=>{
+        els.folderDropzone.addEventListener(name, e=>{
+          e.preventDefault();
+          els.folderDropzone.classList.add('active');
+        });
+      });
+      ['dragleave','drop'].forEach(name=>{
+        els.folderDropzone.addEventListener(name, e=>{
+          e.preventDefault();
+          if(name !== 'drop') els.folderDropzone.classList.remove('active');
+        });
+      });
+      els.folderDropzone.addEventListener('drop', async e => {
+        els.folderDropzone.classList.remove('active');
+        const files = [...(e.dataTransfer?.files || [])];
+        if(!files.length || !currentFolderTileId) return;
+        await addFilesToFolder(currentFolderTileId, files);
+      });
+
+      els.existingTileCloseBtn.addEventListener('click', () => els.existingTileDialog.close());
+
+      els.openDrawingBtn.addEventListener('click', () => openDrawingEditorForTile(null));
+      els.closeDrawingBtn.addEventListener('click', () => els.drawingDialog.close());
+
+      els.openHistoryBtn.addEventListener('click', toggleHistoryPanel);
+      els.historyCloseBtn.addEventListener('click', closeHistoryPanel);
+      els.canvasPhotoInput.addEventListener('change', async (e) => {
+        const f = e.target.files?.[0];
+        if(!f) return;
+        addCanvasItem(await fileToDataUrl(f), 40, 40, 180, 180, 'photo');
+        e.target.value = '';
+        showToast('Foto geplaatst');
+      });
+    }
+
+    function applyTheme(){
+      const theme = getThemeColors();
+      document.documentElement.style.setProperty('--accent', theme.accent);
+      document.documentElement.style.setProperty('--accent2', lighten(theme.accent));
+      document.documentElement.style.setProperty('--button-bg', theme.buttonBg || theme.accent);
+      document.documentElement.style.setProperty('--button-bg2', theme.buttonBg2 || lighten(theme.buttonBg || theme.accent));
+      document.documentElement.style.setProperty('--button-text', theme.buttonText || '#ffffff');
+      document.documentElement.style.setProperty('--button-soft-bg', theme.softButton || 'rgba(255,255,255,.82)');
+      document.documentElement.style.setProperty('--button-soft-text', theme.softButtonText || theme.text);
+      document.documentElement.style.setProperty('--input-bg', theme.inputBg || '#ffffff');
+      document.documentElement.style.setProperty('--tile-bg', theme.tileBg || theme.panel);
+      document.documentElement.style.setProperty('--bg1', theme.bg1);
+      document.documentElement.style.setProperty('--bg2', theme.bg2);
+      document.documentElement.style.setProperty('--panel', theme.panel);
+      document.documentElement.style.setProperty('--panel-strong', theme.panelStrong);
+      document.documentElement.style.setProperty('--text', theme.text);
+      document.documentElement.style.setProperty('--muted', theme.muted);
+      document.documentElement.style.setProperty('--line', theme.line);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.accent);
+      document.body.style.fontFamily = state.fontFamily || 'Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+      document.body.classList.toggle('user-mode', !state.editMode);
+      document.body.classList.toggle('compact-mode', state.viewMode === 'compact');
+      document.body.classList.toggle('senior-mode', !!state.seniorMode);
+      els.modeToggleCheck.checked = !!state.editMode;
+      if(els.settingsTheme) els.settingsTheme.value = state.theme || 'rose';
+      syncThemeSettingsUI();
+      els.settingsFontFamily.value = state.fontFamily || 'Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+      els.settingsDeepEdit.value = state.deepEdit ? 'on' : 'off';
+      els.appTitle.textContent = state.title || 'Maartens Place';
+      els.appSubtitle.textContent = state.subtitle || '';
+      [...document.querySelectorAll('.seg')].forEach(btn => btn.classList.toggle('active', btn.dataset.view === state.viewMode));
+      document.querySelectorAll('.edit-only').forEach(el => el.classList.toggle('hidden', !state.editMode));
+      applyDeepEditMode();
+    }
+
+    function lighten(hex){
+      try{
+        const c = hex.replace('#','');
+        const n = parseInt(c,16);
+        let r = (n>>16)&255, g=(n>>8)&255, b=n&255;
+        r = Math.min(255, r+26); g = Math.min(255, g+26); b = Math.min(255, b+26);
+        return '#' + [r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+      }catch{return '#df84a9'}
+    }
+
+
+    function openTabDialog(tab=null){
+      editingTabId = tab?.id || null;
+      els.tabDialogTitle.textContent = editingTabId ? 'Tabblad aanpassen' : 'Nieuw tabblad';
+      els.tabName.value = tab?.name || '';
+      els.tabDescription.value = tab?.description || '';
+      els.tabDialog.showModal();
+      setTimeout(() => els.tabName.focus(), 30);
+    }
+
+    function saveTabFromDialog(e){
+      e.preventDefault();
+      const name = (els.tabName.value || '').trim();
+      const description = (els.tabDescription.value || '').trim();
+      if(!name){
+        showToast('Geef eerst een naam voor het tabblad');
+        els.tabName.focus();
+        return;
+      }
+      if(editingTabId){
+        const tab = state.tabs.find(t => t.id === editingTabId);
+        if(tab){
+          tab.name = name;
+          tab.description = description;
+          showToast('Tabblad aangepast');
+        }
+      }else{
+        const newTab = { id:'tab-' + createId(), name, description, tiles:[] };
+        state.tabs.push(newTab);
+        state.selectedTabId = newTab.id;
+        showToast('Tabblad toegevoegd');
+      }
+      editingTabId = null;
+      saveState();
+      render();
+      els.tabDialog.close();
+    }
+
+    async function deleteCurrentTab(){
+      const tab = currentTab();
+      if(!tab) return;
+      if(state.tabs.length <= 1){
+        showToast('Je moet minstens één tabblad houden');
+        return;
+      }
+      const msg = `Weet je zeker dat je het tabblad "${tab.name}" wilt verwijderen? Alle tegels in dit tabblad worden dan ook verwijderd.`;
+      const ok = await confirmAction(msg, 'Tabblad verwijderen');
+      if(!ok) return;
+      const idx = state.tabs.findIndex(t => t.id === tab.id);
+      if(idx < 0) return;
+      state.tabs.splice(idx,1);
+      state.selectedTabId = state.tabs[Math.max(0, idx-1)]?.id || state.tabs[0]?.id || '';
+      saveState();
+      render();
+      showToast('Tabblad verwijderd');
+    }
+
+    function render(){
+      renderTabs();
+      renderTiles();
+      renderCanvasItems();
+      saveState();
+    }
+
+    function renderTabs(){
+      els.topTabbar.innerHTML = '';
+      state.tabs.forEach(tab => {
+        const btn = document.createElement('button');
+        btn.className = 'tabpill' + (tab.id === state.selectedTabId ? ' active' : '');
+        btn.dataset.tabid = tab.id;
+        btn.textContent = tab.name;
+        btn.addEventListener('click', () => {
+          state.selectedTabId = tab.id;
+          render();
+        });
+        els.topTabbar.appendChild(btn);
+      });
+      applyDeepEditMode();
+    }
+
+    function tileMatchesQuery(tile, q){
+      const hay = [tile.name,tile.body,tile.fileName,tile.url,tile.type,(tile.items||[]).map(i=>i.text).join(' ')]
+        .filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(q);
+    }
+
+    function findTileLocationById(tileId){
+      for(const tab of state.tabs){
+        const index = (tab.tiles || []).findIndex(t => t.id === tileId);
+        if(index >= 0) return {tab, index, tile: tab.tiles[index]};
+      }
+      return null;
+    }
+
+    function renderTiles(){
+      const q = (els.searchInput.value || '').trim().toLowerCase();
+      const sourceTiles = q
+        ? state.tabs.flatMap(tab => (tab.tiles || []).filter(tile => tileMatchesQuery(tile, q)).map(tile => ({tile, tab})))
+        : (currentTab().tiles || []).map(tile => ({tile, tab: currentTab()}));
+
+      els.tiles.innerHTML = '';
+      els.emptyState.style.display = sourceTiles.length ? 'none' : 'block';
+      els.emptyState.textContent = q ? 'Geen tegels gevonden in alle tabbladen.' : 'Dit tabblad is nog leeg.';
+
+      sourceTiles.forEach(({tile, tab}) => {
+        const card = document.createElement('article');
+        card.className = 'tile' + (tile.size === 'large' ? ' large' : '');
+        card.dataset.tileId = tile.id;
+
+        const icon = renderIconMarkup(tile);
+
+        card.innerHTML = `
+          <button class="dragHandle" title="Sleep om te ordenen, naar tabblad of map">⠿</button>
+          <div class="tileTop">
+            ${icon}
+            <div style="position:relative">
+              <button class="menuBtn">⋯</button>
+              <div class="menu">
+                <button data-act="edit">Tegel bewerken</button>
+                <button data-act="duplicate">Tegel dupliceren</button>
+                <button data-act="delete" class="danger">Tegel verwijderen</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 class="tileTitle">${escapeHtml(tile.name || 'Zonder naam')}</h3>
+            ${q ? `<div class="tiny" style="margin-top:4px">Tabblad: ${escapeHtml(tab.name || '')}</div>` : ''}
+          </div>
+          <div class="tileContent"></div>
+        `;
+
+        const content = card.querySelector('.tileContent');
+        const menuBtn = card.querySelector('.menuBtn');
+        const menu = card.querySelector('.menu');
+        if(!state.editMode) menuBtn.parentElement.style.display = 'none';
+        menuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.querySelectorAll('.menu.open').forEach(m => { if(m!==menu) m.classList.remove('open'); });
+          menu.classList.toggle('open');
+        });
+        menu.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', () => {
+            menu.classList.remove('open');
+            if(btn.dataset.act === 'edit') { state.selectedTabId = tab.id; openTileDialog(tile); renderTabs(); }
+            if(btn.dataset.act === 'duplicate') duplicateTile(tile.id);
+            if(btn.dataset.act === 'delete') deleteTile(tile.id);
+          });
+        });
+
+        if(tile.type === 'note'){
+          if(state.editMode){
+            const area = document.createElement('textarea');
+            area.className = 'noteArea';
+            area.placeholder = 'Typ hier je notitie';
+            area.value = tile.body || '';
+            area.addEventListener('input', e => {
+              tile.body = e.target.value;
+              saveState();
+            });
+            content.appendChild(area);
+          }else{
+            const noteText = tile.body || '';
+            const viewer = document.createElement('div');
+            viewer.className = 'noteViewer';
+            viewer.textContent = noteText || 'Geen notitie ingevuld.';
+            content.appendChild(viewer);
+
+            const expandBtn = document.createElement('button');
+            expandBtn.type = 'button';
+            expandBtn.className = 'btn small noteExpandBtn';
+            expandBtn.textContent = 'Lees hele notitie';
+            expandBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const isExpanded = viewer.classList.toggle('expanded');
+              card.classList.toggle('note-reader-wide', isExpanded);
+              expandBtn.textContent = isExpanded ? 'Notitie inklappen' : 'Lees hele notitie';
+            });
+            content.appendChild(expandBtn);
+
+            requestAnimationFrame(() => {
+              if(viewer.scrollHeight <= viewer.clientHeight + 4){
+                expandBtn.classList.add('hidden');
+              }
+            });
+          }
+        }
+
+        if(tile.type === 'checklist'){
+          const wrap = document.createElement('div');
+          wrap.className = 'checklist';
+          (tile.items || []).forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'checkRow' + (item.done ? ' done' : '');
+            row.innerHTML = `<input type="checkbox" ${item.done ? 'checked':''}><div class="checkText">${escapeHtml(item.text || '')}</div>${state.editMode ? '<button type="button" class="checkDelete">✕</button>' : ''}`;
+            row.querySelector('input[type="checkbox"]').addEventListener('change', e => { item.done = e.target.checked; render(); saveState(); });
+            const del = row.querySelector('.checkDelete');
+            if(del) del.addEventListener('click', () => {
+              tile.items = (tile.items || []).filter(x => x.id !== item.id);
+              render();
+            });
+            wrap.appendChild(row);
+          });
+
+          content.appendChild(wrap);
+
+          if(state.editMode){
+            const add = document.createElement('div');
+            add.style.display = 'flex';
+            add.style.gap = '8px';
+            add.innerHTML = `<input class="field" placeholder="Nieuw punt"><button class="btn small" type="button">Toevoegen</button>`;
+            add.querySelector('button').addEventListener('click', () => {
+              const input = add.querySelector('input');
+              const text = input.value.trim();
+              if(!text) return;
+              tile.items = tile.items || [];
+              tile.items.push({id:createId(), text, done:false});
+              input.value = '';
+              render();
+            });
+            content.appendChild(add);
+          }
+        }
+
+        if(tile.type === 'link'){
+          // In normale portaalmodus tonen we geen technische URL/veld.
+          // In bewerkmodus blijft het veld zichtbaar zodat je de link snel kunt aanpassen.
+          if(state.editMode){
+            const field = document.createElement('input');
+            field.className = 'field';
+            field.placeholder = 'https://...';
+            field.value = tile.url || '';
+            field.addEventListener('input', e => { tile.url = e.target.value; saveState(); });
+            content.appendChild(field);
+          }
+
+          const a = document.createElement('button');
+          a.className = 'btn primary';
+          a.type = 'button';
+          a.textContent = tile.url ? 'Open website' : 'Geen link ingesteld';
+          a.disabled = !tile.url;
+          a.addEventListener('click', () => {
+            if(tile.url) window.open(tile.url, '_blank', 'noopener,noreferrer');
+            else showToast('Nog geen URL ingevuld');
+          });
+          content.appendChild(a);
+        }
+
+        if(tile.type === 'file'){
+          const fileTarget = tile.fileUrl || tile.fileDataUrl || '';
+          const hasShortcut = !!(fileTarget || tile.fileHandleKey);
+          if(state.editMode){
+            const info = document.createElement('div');
+            info.className = 'meta';
+            if(tile.fileHandleKey){
+              info.innerHTML = `<strong>${escapeHtml(tile.fileName || tile.name || 'Bestand')}</strong><br>Lokale bestandssnelkoppeling bewaard in deze browser`;
+            }else if(fileTarget){
+              info.innerHTML = `<strong>${escapeHtml(tile.fileName || deriveNameFromFileLink(fileTarget) || 'Bestand')}</strong><br>${escapeHtml(fileTarget)}`;
+            }else{
+              info.textContent = 'Nog geen bestand-snelkoppeling ingesteld. Bewerk de tegel en kies een lokaal bestand of plak een link.';
+            }
+            content.appendChild(info);
+          }
+
+          const btn = document.createElement('button');
+          btn.className = 'btn primary';
+          btn.textContent = hasShortcut ? 'Bestand openen' : 'Geen snelkoppeling ingesteld';
+          btn.disabled = !hasShortcut;
+          btn.addEventListener('click', () => hasShortcut ? openFileShortcut(tile) : showToast('Nog geen bestand-snelkoppeling ingesteld'));
+          content.appendChild(btn);
+        }
+
+        if(tile.type === 'folder'){
+          const count = document.createElement('div');
+          count.className = 'meta';
+          count.innerHTML = `<strong>${(tile.files || []).length}</strong> item(s)`;
+          content.appendChild(count);
+
+          const btn = document.createElement('button');
+          btn.className = 'btn primary';
+          btn.textContent = 'Map openen';
+          btn.addEventListener('click', () => openFolder(tile));
+          content.appendChild(btn);
+
+          if(tile.body){
+            if(state.editMode){
+              const desc = document.createElement('textarea');
+              desc.className = 'noteArea';
+              desc.placeholder = 'Typ hier eventueel iets over deze map';
+              desc.value = tile.body || '';
+              desc.addEventListener('input', e => { tile.body = e.target.value; saveState(); });
+              content.appendChild(desc);
+            }else{
+              const desc = document.createElement('div');
+              desc.className = 'meta';
+              desc.textContent = tile.body || '';
+              content.appendChild(desc);
+            }
+          }
+        }
+
+        if(tile.type === 'photo' || tile.type === 'draw'){
+          if(tile.image){
+            const box = document.createElement('div');
+            box.className = 'meta';
+            box.innerHTML = `<img src="${tile.image}" alt="" style="width:100%;max-height:240px;object-fit:contain;border-radius:14px">`;
+            content.appendChild(box);
+          }
+          const controls = document.createElement('div');
+          controls.style.display = 'flex';
+          controls.style.gap = '8px';
+          controls.style.flexWrap = 'wrap';
+          if(tile.type === 'draw'){
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn';
+            editBtn.type = 'button';
+            editBtn.textContent = 'Tekening aanpassen';
+            editBtn.addEventListener('click', () => openDrawingEditorForTile(tile.id));
+            controls.appendChild(editBtn);
+          }
+          if(tile.type === 'photo' && state.editMode){
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn';
+            editBtn.type = 'button';
+            editBtn.textContent = 'Foto wijzigen';
+            editBtn.addEventListener('click', () => openTileDialog(tile));
+            controls.appendChild(editBtn);
+          }
+          if(controls.children.length) content.appendChild(controls);
+        }
+
+        els.tiles.appendChild(card);
+
+        // Drag-and-drop naar tabblad
+        const dragHandle = card.querySelector('.dragHandle');
+        if(dragHandle && state.editMode){
+          initTileDrag(dragHandle, card, tile, tab);
+        }
+      });
+
+      if(state.editMode){
+        const ghost = document.createElement('article');
+        ghost.className = 'tile ghost';
+        ghost.innerHTML = `<div><div style="font-size:2rem;margin-bottom:8px;">＋</div><strong>Nieuwe tegel</strong></div>`;
+        ghost.addEventListener('click', () => openTileDialog());
+        els.tiles.appendChild(ghost);
+      }
+    }
+
+    function reorderTileInTab(tab, movingId, targetId, side='after'){
+      if(!tab || movingId === targetId) return;
+      const tiles = tab.tiles || [];
+      const from = tiles.findIndex(t => t.id === movingId);
+      const targetBeforeRemoval = tiles.findIndex(t => t.id === targetId);
+      if(from < 0 || targetBeforeRemoval < 0) return;
+      const [moving] = tiles.splice(from, 1);
+      let to = tiles.findIndex(t => t.id === targetId);
+      if(to < 0){
+        tiles.push(moving);
+        return;
+      }
+      if(side === 'after') to += 1;
+      tiles.splice(to, 0, moving);
+    }
+
+    /* ── Drag-and-drop: tegel naar ander tabblad OF map ── */
+    function initTileDrag(handle, cardEl, tile, sourceTab){
+      const start = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        let ghost = null;
+        let currentDropTab = null;
+        let currentDropFolder = null;
+        let currentDropTile = null;
+        let currentDropSide = 'after';
+
+        cardEl.classList.add('dragging-source');
+
+        ghost = document.createElement('div');
+        ghost.className = 'dragGhost';
+        ghost.innerHTML = `<div class="tileIcon">${renderIconInner(tile)}</div><span>${escapeHtml(tile.name || 'Tegel')}</span>`;
+        document.body.appendChild(ghost);
+        positionGhost(e);
+
+        function positionGhost(ev){
+          if(!ghost) return;
+          const cx = 'touches' in ev ? ev.touches[0].clientX : ev.clientX;
+          const cy = 'touches' in ev ? ev.touches[0].clientY : ev.clientY;
+          ghost.style.left = (cx + 12) + 'px';
+          ghost.style.top = (cy - 20) + 'px';
+
+          // Check tabpills
+          let foundTab = null;
+          document.querySelectorAll('.tabpill').forEach(pill => {
+            const rect = pill.getBoundingClientRect();
+            if(cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom){
+              foundTab = pill.dataset.tabid;
+              pill.classList.add('drag-over');
+            } else {
+              pill.classList.remove('drag-over');
+            }
+          });
+          currentDropTab = foundTab;
+
+          // Check folder tiles én tegelvolgorde binnen hetzelfde tabblad
+          let foundFolder = null;
+          let foundOrderTile = null;
+          let foundOrderSide = 'after';
+          document.querySelectorAll('.tile[data-tile-id]').forEach(tileEl => {
+            tileEl.classList.remove('order-drop-before','order-drop-after');
+            const tid = tileEl.dataset.tileId;
+            if(tid === tile.id) return; // niet op zichzelf droppen
+            const t = findTileById(tid);
+            if(!t) return;
+            const rect = tileEl.getBoundingClientRect();
+            const inside = cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom;
+            if(t.type === 'folder' && inside){
+              foundFolder = tid;
+              tileEl.classList.add('folder-drop-target');
+              return;
+            }
+            tileEl.classList.remove('folder-drop-target');
+            const sameSourceTab = (sourceTab.tiles || []).some(x => x.id === tid);
+            if(inside && sameSourceTab && !foundFolder){
+              foundOrderTile = tid;
+              foundOrderSide = cx < (rect.left + rect.width / 2) ? 'before' : 'after';
+              tileEl.classList.add(foundOrderSide === 'before' ? 'order-drop-before' : 'order-drop-after');
+            }
+          });
+          currentDropFolder = foundFolder;
+          currentDropTile = foundFolder ? null : foundOrderTile;
+          currentDropSide = foundOrderSide;
+        }
+
+        function onMove(ev){ ev.preventDefault(); positionGhost(ev); }
+
+        function onEnd(){
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('touchmove', onMove);
+          window.removeEventListener('mouseup', onEnd);
+          window.removeEventListener('touchend', onEnd);
+
+          cardEl.classList.remove('dragging-source');
+          if(ghost){ ghost.remove(); ghost = null; }
+          document.querySelectorAll('.tabpill.drag-over').forEach(p => p.classList.remove('drag-over'));
+          document.querySelectorAll('.tile.folder-drop-target').forEach(p => p.classList.remove('folder-drop-target'));
+          document.querySelectorAll('.tile.order-drop-before,.tile.order-drop-after').forEach(p => p.classList.remove('order-drop-before','order-drop-after'));
+
+          // Drop op folder?
+          if(currentDropFolder){
+            const folder = findTileById(currentDropFolder);
+            if(folder && folder.type === 'folder'){
+              sourceTab.tiles = (sourceTab.tiles || []).filter(t => t.id !== tile.id);
+              folder.files = folder.files || [];
+              folder.files.push(tileToFolderItem(tile));
+              saveState();
+              render();
+              showToast(`"${tile.name || 'Tegel'}" in map "${folder.name}" gezet`);
+              return;
+            }
+          }
+          // Drop op andere plek binnen hetzelfde tabblad?
+          if(currentDropTile){
+            reorderTileInTab(sourceTab, tile.id, currentDropTile, currentDropSide);
+            saveState();
+            render();
+            showToast(`"${tile.name || 'Tegel'}" verplaatst`);
+            return;
+          }
+          // Drop op tabblad?
+          if(currentDropTab && currentDropTab !== sourceTab.id){
+            const targetTab = state.tabs.find(t => t.id === currentDropTab);
+            if(targetTab){
+              sourceTab.tiles = (sourceTab.tiles || []).filter(t => t.id !== tile.id);
+              targetTab.tiles = targetTab.tiles || [];
+              targetTab.tiles.push(tile);
+              saveState();
+              render();
+              showToast(`"${tile.name || 'Tegel'}" verplaatst naar ${targetTab.name}`);
+            }
+          }
+        }
+
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', onMove, {passive:false});
+        window.addEventListener('mouseup', onEnd);
+        window.addEventListener('touchend', onEnd);
+      };
+
+      handle.addEventListener('mousedown', start);
+      handle.addEventListener('touchstart', start, {passive:false});
+    }
+
+    /* ── Geschiedenis (zijpaneel) ── */
+    const DEFAULT_HISTORY_TILES = [
+      { type:'link', name:'YouTube', emoji:'▶️', url:'https://www.youtube.com', iconImage:'https://www.google.com/s2/favicons?domain=youtube.com&sz=128' },
+      { type:'link', name:'Google', emoji:'🔍', url:'https://www.google.nl', iconImage:'https://www.google.com/s2/favicons?domain=google.com&sz=128' },
+      { type:'link', name:'NOS Nieuws', emoji:'📰', url:'https://nos.nl', iconImage:'https://www.google.com/s2/favicons?domain=nos.nl&sz=128' },
+      { type:'link', name:'Spotify', emoji:'🎵', url:'https://open.spotify.com', iconImage:'https://www.google.com/s2/favicons?domain=spotify.com&sz=128' },
+      { type:'link', name:'Netflix', emoji:'🎬', url:'https://www.netflix.com', iconImage:'https://www.google.com/s2/favicons?domain=netflix.com&sz=128' },
+      { type:'link', name:'Gmail', emoji:'📧', url:'https://mail.google.com', iconImage:'https://www.google.com/s2/favicons?domain=gmail.com&sz=128' },
+      { type:'link', name:'WhatsApp', emoji:'💬', url:'https://web.whatsapp.com', iconImage:'https://www.google.com/s2/favicons?domain=whatsapp.com&sz=128' },
+      { type:'link', name:'Wikipedia', emoji:'📚', url:'https://nl.wikipedia.org', iconImage:'https://www.google.com/s2/favicons?domain=wikipedia.org&sz=128' },
+      { type:'link', name:'Buienradar', emoji:'🌧️', url:'https://www.buienradar.nl', iconImage:'https://www.google.com/s2/favicons?domain=buienradar.nl&sz=128' },
+      { type:'link', name:'Google Maps', emoji:'🗺️', url:'https://maps.google.com', iconImage:'https://www.google.com/s2/favicons?domain=maps.google.com&sz=128' }
+    ];
+
+    function ensureDefaultHistory(){
+      state.tileHistory = state.tileHistory || [];
+      state.defaultHistory = state.defaultHistory || [];
+      if(state.defaultHistory.length === 0){
+        DEFAULT_HISTORY_TILES.forEach(preset => {
+          state.defaultHistory.push({
+            id: createId(),
+            ...preset,
+            subtitle: '',
+            body: '',
+            size: 'normal',
+            isDefault: true
+          });
+        });
+        saveState();
+      } else {
+        // Refresh iconImage URLs van bestaande defaults
+        let changed = false;
+        state.defaultHistory.forEach(existing => {
+          const match = DEFAULT_HISTORY_TILES.find(d => d.name === existing.name && d.url === existing.url);
+          if(match && match.iconImage !== existing.iconImage){
+            existing.iconImage = match.iconImage;
+            if(match.emoji) existing.emoji = match.emoji;
+            changed = true;
+          }
+        });
+        if(changed) saveState();
+      }
+    }
+    ensureDefaultHistory();
+
+    function addToHistory(tile){
+      state.tileHistory = state.tileHistory || [];
+      const snapshot = JSON.parse(JSON.stringify(tile));
+      snapshot.id = createId();
+      snapshot.historyOrigId = tile.id;
+      snapshot.addedAt = Date.now();
+      const isDup = state.tileHistory.some(h => h.name === snapshot.name && h.type === snapshot.type && h.url === (snapshot.url||''));
+      if(!isDup){
+        state.tileHistory.unshift(snapshot);
+        saveState();
+      }
+    }
+
+    function toggleHistoryPanel(){
+      const open = els.historySidebar.classList.toggle('open');
+      document.body.classList.toggle('history-open', open);
+      if(open) renderHistoryTiles();
+    }
+    function closeHistoryPanel(){
+      els.historySidebar.classList.remove('open');
+      document.body.classList.remove('history-open');
+    }
+
+    function renderHistoryTiles(){
+      state.tileHistory = state.tileHistory || [];
+      state.defaultHistory = state.defaultHistory || [];
+
+      // Maartens tegels
+      els.historyUserTiles.innerHTML = '';
+      els.historyUserEmpty.style.display = state.tileHistory.length ? 'none' : 'block';
+      state.tileHistory.forEach(histTile => {
+        els.historyUserTiles.appendChild(createHistRow(histTile, false));
+      });
+
+      // Standaard tegels
+      els.historyDefaultTiles.innerHTML = '';
+      state.defaultHistory.forEach(histTile => {
+        els.historyDefaultTiles.appendChild(createHistRow(histTile, true));
+      });
+    }
+
+    function createHistRow(histTile, isDefault){
+      const row = document.createElement('div');
+      row.className = 'histRow';
+      row.dataset.histId = histTile.id;
+      const dateStr = histTile.addedAt ? new Date(histTile.addedAt).toLocaleDateString('nl-NL',{day:'numeric',month:'short'}) : '';
+      const typeLabel = isDefault ? 'standaard' : (histTile.type || '');
+      row.innerHTML = `
+        <div class="tileIcon">${renderIconInner(histTile)}</div>
+        <div class="histMeta">
+          <strong>${escapeHtml(histTile.name || 'Tegel')}</strong>
+          <span>${escapeHtml(typeLabel)}${dateStr ? ' · ' + dateStr : ''}</span>
+        </div>
+        <div class="histBtns">
+          <button data-act="restore" title="Herstel naar huidig tabblad">＋</button>
+          ${!isDefault ? '<button data-act="delete" class="danger" title="Verwijder uit geschiedenis">✕</button>' : ''}
+        </div>
+      `;
+
+      row.querySelector('[data-act="restore"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        restoreFromHistory(histTile);
+      });
+
+      const delBtn = row.querySelector('[data-act="delete"]');
+      if(delBtn){
+        delBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const ok = await confirmAction(`Weet je zeker dat je "${histTile.name || 'deze tegel'}" uit de geschiedenis wilt verwijderen?`);
+          if(!ok) return;
+          state.tileHistory = state.tileHistory.filter(h => h.id !== histTile.id);
+          saveState();
+          renderHistoryTiles();
+          showToast('Uit geschiedenis verwijderd');
+        });
+      }
+
+      initHistoryDrag(row, histTile);
+      return row;
+    }
+
+    function restoreFromHistory(histTile){
+      const tab = currentTab();
+      const copy = JSON.parse(JSON.stringify(histTile));
+      copy.id = createId();
+      delete copy.historyOrigId;
+      delete copy.addedAt;
+      delete copy.isDefault;
+      tab.tiles = tab.tiles || [];
+      tab.tiles.push(copy);
+      render();
+      showToast(`"${copy.name || 'Tegel'}" hersteld naar ${tab.name}`);
+    }
+
+    function initHistoryDrag(rowEl, histTile){
+      const start = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        let ghost = null;
+        let currentDropTab = null;
+        let currentDropFolder = null;
+
+        ghost = document.createElement('div');
+        ghost.className = 'dragGhost';
+        ghost.innerHTML = `<div class="tileIcon">${renderIconInner(histTile)}</div><span>${escapeHtml(histTile.name || 'Tegel')}</span>`;
+        document.body.appendChild(ghost);
+        rowEl.style.opacity = '.4';
+        posGhost(e);
+
+        function posGhost(ev){
+          if(!ghost) return;
+          const cx = 'touches' in ev ? ev.touches[0].clientX : ev.clientX;
+          const cy = 'touches' in ev ? ev.touches[0].clientY : ev.clientY;
+          ghost.style.left = (cx + 12) + 'px';
+          ghost.style.top = (cy - 20) + 'px';
+
+          let foundTab = null;
+          document.querySelectorAll('.tabpill').forEach(pill => {
+            const rect = pill.getBoundingClientRect();
+            if(cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom){
+              foundTab = pill.dataset.tabid;
+              pill.classList.add('drag-over');
+            } else {
+              pill.classList.remove('drag-over');
+            }
+          });
+          currentDropTab = foundTab;
+
+          let foundFolder = null;
+          document.querySelectorAll('.tile[data-tile-id]').forEach(tileEl => {
+            const t = findTileById(tileEl.dataset.tileId);
+            if(!t || t.type !== 'folder') return;
+            const rect = tileEl.getBoundingClientRect();
+            if(cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom){
+              foundFolder = tileEl.dataset.tileId;
+              tileEl.classList.add('folder-drop-target');
+            } else {
+              tileEl.classList.remove('folder-drop-target');
+            }
+          });
+          currentDropFolder = foundFolder;
+        }
+
+        function onMove(ev){ ev.preventDefault(); posGhost(ev); }
+        function onEnd(){
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('touchmove', onMove);
+          window.removeEventListener('mouseup', onEnd);
+          window.removeEventListener('touchend', onEnd);
+          rowEl.style.opacity = '';
+          if(ghost){ ghost.remove(); ghost = null; }
+          document.querySelectorAll('.tabpill.drag-over').forEach(p => p.classList.remove('drag-over'));
+          document.querySelectorAll('.tile.folder-drop-target').forEach(p => p.classList.remove('folder-drop-target'));
+
+          function makeCopy(){
+            const copy = JSON.parse(JSON.stringify(histTile));
+            copy.id = createId();
+            delete copy.historyOrigId;
+            delete copy.addedAt;
+            delete copy.isDefault;
+            return copy;
+          }
+
+          // Drop op folder?
+          if(currentDropFolder){
+            const folder = findTileById(currentDropFolder);
+            if(folder && folder.type === 'folder'){
+              const copy = makeCopy();
+              folder.files = folder.files || [];
+              folder.files.push(tileToFolderItem(copy));
+              saveState();
+              render();
+              showToast(`"${copy.name || 'Tegel'}" in map "${folder.name}" gezet`);
+              return;
+            }
+          }
+          // Drop op tabblad?
+          if(currentDropTab){
+            const targetTab = state.tabs.find(t => t.id === currentDropTab);
+            if(targetTab){
+              const copy = makeCopy();
+              targetTab.tiles = targetTab.tiles || [];
+              targetTab.tiles.push(copy);
+              saveState();
+              render();
+              showToast(`"${copy.name || 'Tegel'}" hersteld naar ${targetTab.name}`);
+            }
+          }
+        }
+
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', onMove, {passive:false});
+        window.addEventListener('mouseup', onEnd);
+        window.addEventListener('touchend', onEnd);
+      };
+
+      rowEl.addEventListener('mousedown', (e) => {
+        if(e.target.closest('.histBtns')) return;
+        start(e);
+      });
+      rowEl.addEventListener('touchstart', (e) => {
+        if(e.target.closest('.histBtns')) return;
+        start(e);
+      }, {passive:false});
+    }
+
+    function presetForType(kind){
+      const presets = {
+        link: { type:'link', name:'Website', subtitle:'Websitekoppeling', body:'', emoji:'🌐', size:'normal', url:'' },
+        file: { type:'file', name:'Bestand', subtitle:'Bestandskoppeling', body:'', emoji:'📁', size:'normal' },
+        folder: { type:'folder', name:'Map', subtitle:'Nieuwe map', body:'', emoji:'📁', size:'normal', files:[] },
+        note: { type:'note', name:'Notitie', subtitle:'', body:'', emoji:'📝', size:'normal' },
+        checklist: { type:'checklist', name:'Checklist', subtitle:'', body:'', emoji:'✅', size:'normal', items:[] },
+        photo: { type:'photo', name:'Foto', subtitle:'', body:'', emoji:'🖼️', size:'normal' },
+        draw: { type:'draw', name:'Tekening', subtitle:'', body:'', emoji:'✏️', size:'normal' }
+      };
+      return presets[kind] || presets.link;
+    }
+
+    function openTileDialog(tile=null){
+      editingTileId = tile?.id || null;
+      drawingTargetTileId = null;
+      pendingImageData = tile?.image || null;
+      pendingFileData = (tile?.fileUrl || tile?.fileDataUrl || tile?.fileHandleKey) ? {fileUrl: tile.fileUrl || tile.fileDataUrl || '', fileName: tile.fileName || '', fileType: tile.fileType || 'Snelkoppeling'} : null;
+      pendingFileHandleKey = tile?.fileHandleKey || '';
+      pendingFileName = tile?.fileName || '';
+      pendingFileType = tile?.fileType || '';
+      pendingTileIconImage = tile?.iconImage || null;
+      currentChecklistDraft = JSON.parse(JSON.stringify(tile?.items || []));
+      els.tileDialogTitle.textContent = tile && tile.id ? 'Tegel aanpassen' : 'Nieuwe tegel';
+      els.tileType.value = tile?.type || 'link';
+      els.tileName.value = tile?.name || '';
+      els.tileUrl.value = tile?.url || '';
+      if(els.tileFileLink) els.tileFileLink.value = tile?.fileUrl || tile?.fileDataUrl || '';
+      els.tileBody.value = tile?.body || '';
+      els.tileSize.value = tile?.size || 'normal';
+      els.tileEmoji.value = tile?.emoji || defaultEmojiForType(els.tileType.value);
+      els.tileImage.value = '';
+      if(els.tileImageUrl) els.tileImageUrl.value = tile?.image && isHttpUrl(tile.image) ? normalizeSharedImageUrl(tile.image) : '';
+      els.tileFileInput.value = '';
+      if(els.tileIconFileInput) els.tileIconFileInput.value = '';
+      if(els.tileIconUrl) els.tileIconUrl.value = tile?.iconImage && isLikelyImageUrl(tile.iconImage) ? normalizeSharedImageUrl(tile.iconImage) : '';
+      updateTileDialogFields();
+      updateTileIconUrlPreview();
+      renderTileDialogExtras();
+      highlightIcon(pendingTileIconImage || els.tileEmoji.value);
+      els.tileDialog.showModal();
+    }
+
+    function defaultEmojiForType(type){
+      return ({link:'🌐', file:'📄', folder:'📁', note:'📝', checklist:'✅', photo:'🖼️', draw:'✏️'})[type] || '📁';
+    }
+
+    function renderIconInner(item){
+      if(item?.iconImage) return `<img src="${item.iconImage}" alt="" onerror="this.style.display='none';this.parentElement.textContent='${escapeHtml(item?.emoji || defaultEmojiForType(item?.type))}'">`;
+      if(item?.image) return `<img src="${item.image}" alt="">`;
+      return escapeHtml(item?.emoji || defaultEmojiForType(item?.type));
+    }
+
+    function renderIconMarkup(item){
+      return `<div class="tileIcon">${renderIconInner(item)}</div>`;
+    }
+
+    function defaultNameForType(type){
+      return ({link:'Website', file:'Bestand', folder:'Map', note:'Notitie', checklist:'Checklist', photo:'Foto', draw:'Tekening'})[type] || 'Tegel';
+    }
+
+    function applyTypeDefaultsToDialog(){
+      const type = els.tileType.value;
+      pendingTileIconImage = null;
+      els.tileName.value = defaultNameForType(type);
+      els.tileEmoji.value = defaultEmojiForType(type);
+      highlightIcon(els.tileEmoji.value);
+    }
+
+    function updateTileDialogFields(){
+      const type = els.tileType.value;
+      els.tileUrlWrap.style.display = type === 'link' ? '' : 'none';
+      els.tileBodyWrap.style.display = (type === 'note' || type === 'folder') ? '' : 'none';
+      els.tileImageWrap.style.display = type === 'photo' ? '' : 'none';
+      els.tileImagePreviewWrap.style.display = (type === 'photo' || type === 'draw') ? '' : 'none';
+      els.tileChecklistWrap.style.display = type === 'checklist' ? '' : 'none';
+      els.tileFileWrap.style.display = type === 'file' ? '' : 'none';
+      els.tileDrawingWrap.style.display = type === 'draw' ? '' : 'none';
+
+      if(type === 'note') els.tileBody.placeholder = 'Typ hier je notitie';
+      else if(type === 'folder') els.tileBody.placeholder = 'Typ hier eventueel iets over deze map';
+      else els.tileBody.placeholder = 'Typ hier...';
+
+      if(!els.tileName.value.trim()){
+        const defaults = {link:'Website', file:'Bestand', folder:'Map', note:'Notitie', checklist:'Checklist', photo:'Foto', draw:'Tekening'};
+        els.tileName.value = defaults[type] || 'Tegel';
+      }
+      if(!els.tileEmoji.value.trim() && !pendingTileIconImage){
+        els.tileEmoji.value = defaultEmojiForType(type);
+        highlightIcon(els.tileEmoji.value);
+      }
+    }
+
+    function renderTileDialogExtras(){
+      const type = els.tileType.value;
+      if(type === 'checklist'){
+        els.tileChecklistEditor.innerHTML = '';
+        (currentChecklistDraft || []).forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'checkRow' + (item.done ? ' done' : '');
+          row.innerHTML = `<input type="checkbox" ${item.done ? 'checked':''}><div class="checkText">${escapeHtml(item.text || '')}</div><button type="button" class="checkDelete">✕</button>`;
+          row.querySelector('input[type="checkbox"]').addEventListener('change', e => { item.done = e.target.checked; row.classList.toggle('done', item.done); });
+          row.querySelector('.checkDelete').addEventListener('click', () => {
+            currentChecklistDraft = currentChecklistDraft.filter(x => x.id !== item.id);
+            renderTileDialogExtras();
+          });
+          els.tileChecklistEditor.appendChild(row);
+        });
+      }
+      const previewSrc = pendingImageData || '';
+      if(previewSrc){
+        els.tileImagePreview.onerror = () => {
+          els.tileImagePreview.style.display = 'none';
+          els.tileImagePreviewEmpty.style.display = '';
+          els.tileImagePreviewEmpty.textContent = 'Deze link is geen directe afbeelding of wordt door de site geblokkeerd';
+        };
+        els.tileImagePreview.onload = () => {
+          els.tileImagePreviewEmpty.textContent = 'Nog geen foto gekozen';
+        };
+        els.tileImagePreview.src = previewSrc;
+        els.tileImagePreview.style.display = '';
+        els.tileImagePreviewEmpty.style.display = 'none';
+      }else{
+        els.tileImagePreview.removeAttribute('src');
+        els.tileImagePreview.style.display = 'none';
+        els.tileImagePreviewEmpty.textContent = 'Nog geen foto gekozen';
+        els.tileImagePreviewEmpty.style.display = '';
+      }
+    }
+
+    function isLikelyImageUrl(url=''){
+      return /^https?:\/\//i.test(url) || /^data:image\//i.test(url);
+    }
+
+    function normalizeSharedImageUrl(raw=''){
+      const url = String(raw || '').trim();
+      if(!url) return '';
+      try{
+        const parsed = new URL(url);
+        if(/google\./i.test(parsed.hostname)){
+          const direct = parsed.searchParams.get('imgurl') || parsed.searchParams.get('mediaurl') || parsed.searchParams.get('url');
+          if(direct) return decodeURIComponent(direct);
+        }
+        if(/drive\.google\.com$/i.test(parsed.hostname)){
+          const idFromQuery = parsed.searchParams.get('id');
+          const idFromPath = parsed.pathname.match(/\/file\/d\/([^/]+)/)?.[1];
+          const fileId = idFromQuery || idFromPath;
+          if(fileId) return 'https://drive.google.com/uc?export=view&id=' + encodeURIComponent(fileId);
+        }
+        if(/dropbox\.com$/i.test(parsed.hostname)){
+          parsed.searchParams.set('raw','1');
+          return parsed.toString();
+        }
+        return url;
+      }catch{
+        const match = String(url).match(/[?&](?:imgurl|mediaurl|url)=([^&]+)/i);
+        if(match) return decodeURIComponent(match[1]);
+        return url;
+      }
+    }
+
+    function normalizeIconUrlInput(raw=''){
+      return normalizeSharedImageUrl(raw);
+    }
+
+    function updateTileIconUrlPreview(){
+      const wrap = els.tileIconUrlPreviewWrap;
+      const img = els.tileIconUrlPreview;
+      const empty = els.tileIconUrlPreviewEmpty;
+      if(!wrap || !img || !empty) return;
+      const url = normalizeIconUrlInput(els.tileIconUrl?.value || '');
+      if(url && els.tileIconUrl && url !== els.tileIconUrl.value.trim()) els.tileIconUrl.value = url;
+      img.onerror = () => {
+        img.style.display = 'none';
+        empty.style.display = '';
+        empty.textContent = 'Deze link is geen directe afbeelding of wordt geblokkeerd. Gebruik: Afbeeldingsadres kopiëren.';
+        wrap.style.display = '';
+      };
+      if(url){
+        wrap.style.display = '';
+        empty.textContent = 'Nog geen internetafbeelding gekozen';
+        img.src = url;
+        img.style.display = '';
+        empty.style.display = 'none';
+      }else{
+        img.removeAttribute('src');
+        img.style.display = 'none';
+        empty.style.display = '';
+        wrap.style.display = 'none';
+      }
+    }
+
+    function clearTileIconUrlInput(){
+      if(els.tileIconUrl) els.tileIconUrl.value = '';
+      updateTileIconUrlPreview();
+      if(pendingTileIconImage && /^https?:\/\//i.test(pendingTileIconImage)){
+        pendingTileIconImage = null;
+        if(!els.tileEmoji.value.trim()) els.tileEmoji.value = defaultEmojiForType(els.tileType.value);
+        highlightIcon(els.tileEmoji.value.trim());
+      }
+      showToast('Afbeeldingslink gewist');
+    }
+
+    function openTileIconGoogleImageSearch(){
+      const query = (els.tileName?.value || '').trim() || (els.tileUrl?.value || '').trim() || 'icoon';
+      window.open('https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(query), '_blank', 'noopener');
+    }
+
+    function getTileIconUrlFromInput(){
+      const raw = els.tileIconUrl?.value || '';
+      const url = normalizeIconUrlInput(raw);
+      if(!url || !isLikelyImageUrl(url) || isDataUrl(url)) return '';
+      return url;
+    }
+
+    function applyTileIconFromUrl(){
+      const url = getTileIconUrlFromInput();
+      if(!url){
+        showToast('Plak een directe https-link naar een afbeelding');
+        return;
+      }
+      if(els.tileIconUrl) els.tileIconUrl.value = url;
+      pendingTileIconImage = url;
+      els.tileEmoji.value = '';
+      updateTileIconUrlPreview();
+      highlightIcon(url);
+      showToast('Internetafbeelding ingesteld als icoon');
+    }
+
+
+    function previewTileImageUrl(){
+      const url = normalizeSharedImageUrl(els.tileImageUrl?.value || '');
+      if(!url){
+        if(!pendingImageData || isHttpUrl(pendingImageData)) pendingImageData = null;
+        renderTileDialogExtras();
+        return;
+      }
+      if(els.tileImageUrl && url !== els.tileImageUrl.value.trim()) els.tileImageUrl.value = url;
+      pendingImageData = url;
+      renderTileDialogExtras();
+    }
+
+    function applyTileImageFromUrl(){
+      const url = normalizeSharedImageUrl(els.tileImageUrl?.value || '');
+      if(!url || !isLikelyImageUrl(url) || isDataUrl(url)){
+        showToast('Plak een directe https-link naar een afbeelding');
+        return;
+      }
+      pendingImageData = url;
+      if(els.tileImageUrl) els.tileImageUrl.value = url;
+      renderTileDialogExtras();
+      showToast('Afbeeldingslink ingesteld');
+    }
+
+    function openTileImageGoogleSearch(){
+      const query = (els.tileName?.value || '').trim() || 'afbeelding';
+      window.open('https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(query), '_blank', 'noopener');
+    }
+
+    async function handleTileIconFileUpload(e){
+      const f = e.target.files?.[0];
+      if(!f) return;
+      pendingTileIconImage = await fileToDataUrl(f);
+      if(els.tileIconUrl) els.tileIconUrl.value = '';
+      els.tileEmoji.value = '';
+      updateTileIconUrlPreview();
+      highlightIcon(pendingTileIconImage);
+      showToast('Afbeelding ingesteld als icoon');
+    }
+
+    function saveCurrentTileDialogIcon(){
+      if(!pendingTileIconImage){
+        showToast('Kies eerst een afbeelding als icoon');
+        return;
+      }
+      state.savedIcons = state.savedIcons || [];
+      state.savedIcons.unshift({id:createId(), name:nextSavedIconName(), src:pendingTileIconImage});
+      saveState();
+      setupIconPicker();
+      highlightIcon(pendingTileIconImage);
+      showToast('Icoon bewaard voor later gebruik');
+    }
+
+    async function removePendingTileIcon(){
+      if(!pendingTileIconImage){
+        showToast('Er is geen afbeeldingsicoon gekozen');
+        return;
+      }
+      const ok = await confirmAction('Weet je zeker dat je dit tegel-icoon wilt verwijderen?');
+      if(!ok) return;
+      pendingTileIconImage = null;
+      if(els.tileIconUrl) els.tileIconUrl.value = '';
+      if(els.tileIconFileInput) els.tileIconFileInput.value = '';
+      updateTileIconUrlPreview();
+      els.tileEmoji.value = defaultEmojiForType(els.tileType.value);
+      highlightIcon(els.tileEmoji.value);
+      showToast('Tegel-icoon verwijderd');
+    }
+
+    function deriveNameFromWebsiteLink(raw=''){
+      const value = String(raw || '').trim();
+      if(!value) return '';
+      let normalized = value;
+      if(!/^https?:\/\//i.test(normalized) && !/^file:\/\//i.test(normalized)) normalized = 'https://' + normalized;
+      try{
+        const url = new URL(normalized);
+        const host = url.hostname.replace(/^www\./i,'');
+        const known = {
+          'youtube.com':'YouTube',
+          'youtu.be':'YouTube',
+          'google.com':'Google',
+          'google.nl':'Google',
+          'nos.nl':'NOS',
+          'spotify.com':'Spotify',
+          'open.spotify.com':'Spotify',
+          'netflix.com':'Netflix',
+          'mail.google.com':'Gmail',
+          'gmail.com':'Gmail',
+          'web.whatsapp.com':'WhatsApp',
+          'whatsapp.com':'WhatsApp',
+          'wikipedia.org':'Wikipedia',
+          'nl.wikipedia.org':'Wikipedia',
+          'buienradar.nl':'Buienradar',
+          'maps.google.com':'Google Maps',
+          'drive.google.com':'Google Drive',
+          'docs.google.com':'Google Docs',
+          'outlook.office.com':'Outlook',
+          'office.com':'Office',
+          'microsoft.com':'Microsoft'
+        };
+        if(known[url.hostname] || known[host]) return known[url.hostname] || known[host];
+        const firstPath = decodeURIComponent((url.pathname.split('/').filter(Boolean)[0] || '').trim());
+        if(firstPath && !/^(index|home|nl|en)$/i.test(firstPath)){
+          return cleanFileNameForTitle(firstPath);
+        }
+        const base = host.split('.')[0] || host;
+        return cleanFileNameForTitle(base);
+      }catch{
+        return cleanFileNameForTitle(value.replace(/^https?:\/\//i,'').replace(/^www\./i,'').split(/[/?#]/)[0] || value);
+      }
+    }
+
+    function deriveNameFromFileLink(raw=''){
+      const value = String(raw || '').trim();
+      if(!value) return '';
+      try{
+        const url = new URL(value);
+        const downloadName = url.searchParams.get('download') || url.searchParams.get('filename') || url.searchParams.get('file');
+        const lastPart = downloadName || decodeURIComponent((url.pathname.split('/').filter(Boolean).pop() || '').trim());
+        return cleanFileNameForTitle(lastPart || url.hostname || 'Bestand');
+      }catch{
+        const normalized = value.replaceAll('\\','/').split(/[?#]/)[0];
+        const lastPart = normalized.split('/').filter(Boolean).pop() || value;
+        return cleanFileNameForTitle(lastPart || 'Bestand');
+      }
+    }
+
+    function cleanFileNameForTitle(name=''){
+      let cleaned = String(name || '').trim();
+      cleaned = cleaned.replace(/^C:\\fakepath\\/i, '');
+      cleaned = cleaned.replace(/\.[a-z0-9]{1,8}$/i, '');
+      cleaned = cleaned.replace(/[-_]+/g, ' ');
+      cleaned = cleaned.replace(/\s+/g, ' ').trim();
+      if(!cleaned) return 'Bestand';
+      return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    }
+
+    function normalizeFileShortcut(raw=''){
+      const value = String(raw || '').trim();
+      if(!value) return '';
+      if(/^https?:\/\//i.test(value) || /^file:\/\//i.test(value)) return value;
+      if(/^[a-zA-Z]:[\\/]/.test(value)) return 'file:///' + value.replaceAll('\\','/');
+      return value;
+    }
+
+    async function openFileShortcut(tile){
+      if(tile.fileHandleKey){
+        try{
+          const handle = await getFileHandle(tile.fileHandleKey);
+          if(!handle){
+            showToast('Deze lokale snelkoppeling is niet meer gevonden in deze browser');
+            return;
+          }
+          const ok = await verifyFileHandlePermission(handle);
+          if(!ok){
+            showToast('Geen toestemming om dit bestand te openen');
+            return;
+          }
+          const file = await handle.getFile();
+          const url = URL.createObjectURL(file);
+          window.open(url, '_blank', 'noopener,noreferrer');
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+          return;
+        }catch(err){
+          console.error(err);
+          showToast('Lokale snelkoppeling openen lukt niet. Kies het bestand opnieuw.');
+          return;
+        }
+      }
+      const target = normalizeFileShortcut(tile.fileUrl || tile.fileDataUrl || '');
+      if(!target){
+        showToast('Nog geen bestand-snelkoppeling ingesteld');
+        return;
+      }
+      window.open(target, '_blank', 'noopener,noreferrer');
+    }
+
+    async function pickLocalFileShortcut(){
+      if('showOpenFilePicker' in window && window.isSecureContext){
+        try{
+          const [handle] = await window.showOpenFilePicker({multiple:false});
+          if(!handle) return;
+          const key = pendingFileHandleKey || ('fh-' + createId());
+          await putFileHandle(key, handle);
+          pendingFileHandleKey = key;
+          pendingFileData = {fileUrl:'', fileName:handle.name || 'Bestand', fileType:'Lokale bestandssnelkoppeling'};
+          pendingFileName = handle.name || 'Bestand';
+          pendingFileType = 'Lokale bestandssnelkoppeling';
+          if(els.tileFileLink) els.tileFileLink.value = '';
+          els.tileName.value = cleanFileNameForTitle(handle.name || 'Bestand');
+          showToast('Lokale bestandssnelkoppeling gemaakt');
+          return;
+        }catch(err){
+          if(err?.name !== 'AbortError') console.error(err);
+          if(err?.name === 'AbortError') return;
+        }
+      }
+      els.tileFileInput.click();
+      showToast('Deze browser kan de locatie niet blijvend onthouden; ik neem alleen de bestandsnaam over.');
+    }
+
+    async function handleTileImageUpload(e){
+      const f = e.target.files?.[0];
+      if(!f) return;
+      pendingImageData = await fileToDataUrl(f);
+      renderTileDialogExtras();
+      showToast('Foto gekozen');
+    }
+
+    async function handleTileFileUpload(e){
+      const f = e.target.files?.[0];
+      if(!f) return;
+      pendingFileHandleKey = '';
+      pendingFileData = {
+        fileUrl: '',
+        fileName: f.name,
+        fileType: f.type || 'Bestandsnaam zonder blijvende locatie'
+      };
+      pendingFileName = f.name;
+      pendingFileType = f.type || 'Bestandsnaam zonder blijvende locatie';
+      els.tileName.value = cleanFileNameForTitle(f.name);
+      showToast('Alleen de bestandsnaam is overgenomen. Gebruik Chrome/Edge via https om ook de lokale snelkoppeling te onthouden.');
+    }
+
+    function buildTileFromForm(type){
+      const linkUrl = type === 'link' ? els.tileUrl.value.trim() : '';
+      const manualName = els.tileName.value.trim();
+      const autoLinkName = type === 'link' ? deriveNameFromWebsiteLink(linkUrl) : '';
+      const iconUrlFromInput = getTileIconUrlFromInput();
+      const finalIconImage = pendingTileIconImage || iconUrlFromInput || null;
+      const tile = {
+        type,
+        name: (type === 'link' ? (autoLinkName || manualName || 'Website') : (manualName || ({file:'Bestand', folder:'Map', note:'Notitie', checklist:'Checklist', photo:'Foto', draw:'Tekening'})[type] || 'Tegel')),
+        subtitle: '',
+        url: linkUrl,
+        body: (type === 'note' || type === 'folder') ? els.tileBody.value : '',
+        emoji: finalIconImage ? '' : (els.tileEmoji.value.trim() || defaultEmojiForType(type)),
+        iconImage: finalIconImage,
+        size: els.tileSize.value,
+        image: (type === 'photo' || type === 'draw') ? ((type === 'photo' && els.tileImageUrl?.value ? normalizeSharedImageUrl(els.tileImageUrl.value) : pendingImageData) || null) : null
+      };
+      if(type === 'file'){
+        const fileUrl = normalizeFileShortcut(els.tileFileLink?.value || pendingFileData?.fileUrl || '');
+        const derivedName = deriveNameFromFileLink(fileUrl) || cleanFileNameForTitle(pendingFileData?.fileName || pendingFileName || 'Bestand');
+        tile.fileUrl = fileUrl;
+        tile.fileHandleKey = fileUrl ? '' : (pendingFileHandleKey || '');
+        tile.fileDataUrl = null;
+        tile.fileName = derivedName;
+        tile.fileType = tile.fileHandleKey ? 'Lokale bestandssnelkoppeling' : (pendingFileData?.fileType || pendingFileType || 'Snelkoppeling');
+        if(fileUrl || tile.fileHandleKey) tile.name = derivedName;
+      }
+      if(type === 'checklist') tile.items = JSON.parse(JSON.stringify(currentChecklistDraft || []));
+      if(type === 'folder') tile.files = [];
+      return tile;
+    }
+
+    function saveTileFromDialog(e){
+      e.preventDefault();
+
+      if((addingTileToFolder || addingFolderToFolder) && currentFolderTileId){
+        const folder = findTileById(currentFolderTileId);
+        if(!folder || folder.type !== 'folder'){
+          addingTileToFolder = false;
+          addingFolderToFolder = false;
+          showToast('Map niet gevonden');
+          els.tileDialog.close();
+          return;
+        }
+        const type = els.tileType.value;
+        const tile = buildTileFromForm(type);
+        folder.files = folder.files || [];
+        folder.files.push(type === 'folder' ? folderItemFromFolderTile(tile) : tileToFolderItem(tile));
+        addingTileToFolder = false;
+        addingFolderToFolder = false;
+        render();
+        openFolder(folder);
+        els.tileDialog.close();
+        showToast(type === 'folder' ? 'Map toegevoegd aan map' : 'Tegel toegevoegd aan map');
+        return;
+      }
+
+      const tab = currentTab();
+      const existing = tab.tiles.find(t => t.id === editingTileId);
+      const type = els.tileType.value;
+      const built = buildTileFromForm(type);
+      if(existing){
+        const keepFolder = existing.type === 'folder' && type === 'folder' ? (existing.files || []) : [];
+        Object.assign(existing, built);
+        if(type !== 'checklist') delete existing.items;
+        if(type === 'folder') existing.files = keepFolder;
+        else delete existing.files;
+        if(type !== 'file'){
+          delete existing.fileDataUrl; delete existing.fileName; delete existing.fileType; delete existing.fileUrl; delete existing.fileHandleKey;
+        }
+      }else{
+        const tile = {id:createId(), ...built};
+        tab.tiles.push(tile);
+        addToHistory(tile);
+      }
+      render();
+      els.tileDialog.close();
+    }
+
+    function duplicateTile(tileId){
+      const loc = findTileLocationById(tileId);
+      if(!loc) return;
+      const {tab, tile} = loc;
+      const copy = JSON.parse(JSON.stringify(tile));
+      copy.id = createId();
+      if(copy.items) copy.items = copy.items.map(i => ({...i,id:createId()}));
+      copy.name = (copy.name || 'Tegel') + ' kopie';
+      tab.tiles.push(copy);
+      render();
+    }
+
+    async function deleteTile(tileId){
+      const loc = findTileLocationById(tileId);
+      const tile = loc?.tile;
+      const ok = await confirmAction(`Weet je zeker dat je ${tile?.name || 'deze tegel'} wilt verwijderen?`);
+      if(!ok || !loc) return;
+      loc.tab.tiles = loc.tab.tiles.filter(t => t.id !== tileId);
+      render();
+      showToast('Tegel verwijderd');
+    }
+
+    function findTileById(tileId){
+      for(const tab of state.tabs){
+        const found = (tab.tiles || []).find(t => t.id === tileId);
+        if(found) return found;
+      }
+      return null;
+    }
+
+    function tileToFolderItem(tile){
+      const type = tile.type || 'note';
+      let content = tile.body || '';
+      let emoji = tile.emoji || '📄';
+      let fileName = (tile.name || 'item') + '.txt';
+      let fileType = 'text/plain';
+      let fileDataUrl = '';
+
+      if(type === 'file'){
+        emoji = tile.emoji || '📄';
+        fileName = tile.fileName || tile.name || 'Bestand';
+        fileType = tile.fileType || 'Snelkoppeling';
+        fileDataUrl = tile.fileUrl || tile.url || '';
+        content = tile.fileUrl || tile.url || '';
+        var fileHandleKeyForFolder = tile.fileHandleKey || '';
+      }else if(type === 'draw' && tile.image){
+        emoji = tile.emoji || '✏️';
+        fileName = (tile.name || 'tekening') + '.png';
+        fileType = 'image/png';
+        fileDataUrl = tile.image;
+      }else if(type === 'link'){
+        content = tile.url || '';
+        emoji = tile.emoji || '🌐';
+        fileName = (tile.name || 'website') + '.url.txt';
+        fileDataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
+      }else if(type === 'checklist'){
+        content = (tile.items || []).map(item => (item.done ? '[x] ' : '[ ] ') + item.text).join('\n');
+        emoji = tile.emoji || '✅';
+        fileName = (tile.name || 'checklist') + '.txt';
+        fileDataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
+      }else if(type === 'photo' && tile.image){
+        emoji = tile.emoji || '🖼️';
+        fileName = (tile.name || 'foto') + '.png';
+        fileType = 'image/png';
+        fileDataUrl = tile.image;
+      }else{
+        emoji = tile.emoji || (type === 'note' ? '📝' : '📄');
+        fileName = (tile.name || 'notitie') + '.txt';
+        fileDataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
+      }
+
+      return {
+        id:createId(),
+        type:'file',
+        name:tile.name || 'Item',
+        subtitle:'Tegel in map',
+        body:content,
+        emoji, size:'normal',
+        fileName, fileType, fileDataUrl,
+        fileUrl: tile.fileUrl || '',
+        fileHandleKey: tile.fileHandleKey || (typeof fileHandleKeyForFolder !== 'undefined' ? fileHandleKeyForFolder : ''),
+        iconImage: tile.iconImage || null
+      };
+    }
+
+    function folderItemFromFolderTile(tile){
+      return {
+        id:createId(),
+        type:'folder',
+        name:tile.name || 'Map',
+        subtitle:tile.subtitle || 'Submap',
+        body:tile.body || '',
+        emoji:'📁',
+        size:'normal',
+        files:[],
+        iconImage: tile.iconImage || null
+      };
+    }
+
+    function folderItemToTile(item){
+      const ext = (item.fileName || '').toLowerCase();
+      if (item.type === 'folder') return JSON.parse(JSON.stringify(item));
+      if ((item.fileName || '').endsWith('.url.txt')) {
+        return { id:createId(), type:'link', name:item.name || 'Website', subtitle:'', body:'', emoji:item.emoji || '🌐', iconImage:item.iconImage || null, size:'normal', url:item.body || '' };
+      }
+      if ((item.fileType || '').startsWith('image/') || ext.endsWith('.png') || ext.endsWith('.jpg') || ext.endsWith('.jpeg') || ext.endsWith('.webp')) {
+        const isDrawing = (item.emoji || '') === '✏️';
+        return { id:createId(), type:isDrawing ? 'draw' : 'photo', name:item.name || (isDrawing ? 'Tekening' : 'Foto'), subtitle:'', body:item.body || '', emoji:item.emoji || (isDrawing ? '✏️' : '🖼️'), iconImage:item.iconImage || null, size:'normal', image:item.fileDataUrl || null };
+      }
+      const rawText = item.body || decodeDataText(item.fileDataUrl || '');
+      if(rawText && /^\[( |x)\]\s/m.test(rawText)){
+        return {
+          id:createId(), type:'checklist', name:item.name || 'Checklist', subtitle:'', body:'', emoji:item.emoji || '✅', iconImage:item.iconImage || null, size:'normal',
+          items: rawText.split(/\n+/).filter(Boolean).map(line => ({id:createId(), done:/^\[x\]/i.test(line), text: line.replace(/^\[( |x)\]\s*/i,'')}))
+        };
+      }
+      if(rawText && ((!item.fileName) || item.fileName.toLowerCase().endsWith('.txt'))){
+        return { id:createId(), type:'note', name:item.name || 'Notitie', subtitle:'', body:rawText, emoji:item.emoji || '📝', iconImage:item.iconImage || null, size:'normal' };
+      }
+      return {
+        id:createId(), type:'file', name:item.name || deriveNameFromFileLink(item.fileDataUrl || item.body || '') || 'Bestand', subtitle:'', body:item.body || '', emoji:item.emoji || '📄', iconImage:item.iconImage || null, size:'normal',
+        fileName:item.fileName || deriveNameFromFileLink(item.fileDataUrl || item.body || '') || '', fileType:item.fileType || 'Snelkoppeling', fileUrl:item.fileUrl || item.fileDataUrl || item.body || '', fileHandleKey:item.fileHandleKey || '', fileDataUrl:null
+      };
+    }
+
+    function cloneTileForFolder(tile){
+      const copy = JSON.parse(JSON.stringify(tile));
+      if(copy.items) copy.items = copy.items.map(i => ({...i, id:createId()}));
+      copy.id = createId();
+      return copy;
+    }
+
+
+    function resolveFolderItem(item){
+      if(item?.type === 'tileRef'){
+        const tile = findTileById(item.refId);
+        if(tile) return tile;
+        return {
+          id:item.id,
+          type:'note',
+          name:item.name || 'Ontbrekende tegel',
+          body:'Deze tegel bestaat niet meer op de pagina.',
+          emoji:item.emoji || '⚠️'
+        };
+      }
+      return item;
+    }
+
+    function focusTileInApp(tileId){
+      if(!tileId) return false;
+      const tile = findTileById(tileId);
+      if(!tile) return false;
+      const tab = (state.tabs || []).find(t => (t.tiles || []).some(x => x.id === tileId));
+      if(tab && state.selectedTabId !== tab.id){
+        state.selectedTabId = tab.id;
+        render();
+      }
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-tile-id="${tileId}"]`);
+        if(!el) return;
+        el.scrollIntoView({behavior:'smooth', block:'center'});
+        el.classList.add('flashFocus');
+        setTimeout(() => el.classList.remove('flashFocus'), 1600);
+      });
+      return true;
+    }
+
+    function materializeFolderItemAsTile(folderTile, item, keepInFolder=false){
+      if(!folderTile || folderTile.type !== 'folder' || !item) return null;
+      if(item.type === 'tileRef') return item.refId || null;
+      if(item.type === 'folder') return null;
+      const tab = currentTab();
+      if(!tab) return null;
+      const tile = ['note','checklist','photo','draw','file','link'].includes(item.type)
+        ? cloneTileForFolder(item)
+        : folderItemToTile(item);
+      tab.tiles = tab.tiles || [];
+      tab.tiles.unshift(tile);
+      if(keepInFolder){
+        folderTile.files = (folderTile.files || []).map(f => f.id === item.id ? {
+          id:createId(),
+          type:'tileRef',
+          refId:tile.id,
+          name:tile.name || 'Tegel',
+          emoji:tile.emoji || defaultEmojiForType(tile.type),
+          iconImage:tile.iconImage || null
+        } : f);
+      }else{
+        folderTile.files = (folderTile.files || []).filter(f => f.id !== item.id);
+      }
+      render();
+      renderFolderContents(folderTile);
+      saveState();
+      return tile.id;
+    }
+
+    async function moveFolderItemToTab(folderTile, item){
+      const okConfirm = await confirmAction('Weet je zeker dat je dit item uit de map wilt halen?');
+      if(!okConfirm) return;
+      if(item?.type === 'tileRef'){
+        folderTile.files = (folderTile.files || []).filter(f => f.id !== item.id);
+        render();
+        renderFolderContents(folderTile);
+        const ok = focusTileInApp(item.refId);
+        saveState();
+        els.folderDialog.close();
+        showToast(ok ? 'Item uit map gehaald en op tabblad zichtbaar' : 'Verwijzing uit map gehaald');
+        return;
+      }
+      const movedId = materializeFolderItemAsTile(folderTile, item, false);
+      if(movedId){
+        els.folderDialog.close();
+        focusTileInApp(movedId);
+        showToast('Item uit map gehaald en op tabblad gezet');
+        return;
+      }
+      folderTile.files = (folderTile.files || []).filter(f => f.id !== item.id);
+      renderFolderContents(folderTile);
+      saveState();
+      showToast('Item uit map gehaald');
+    }
+
+    function openFolder(tile){
+      currentFolderTileId = tile.id;
+      tile.files = tile.files || [];
+      els.folderTitle.textContent = tile.name || 'Map';
+      els.folderSubtitle.textContent = tile.body || 'Open items direct vanuit deze map.';
+
+      // Bestanden/mappen toevoegen hoort bij bewerkmodus, niet bij het normale portaal.
+      [els.folderAddFilesBtn, els.folderAddExistingBtn, els.folderAddTileBtn, els.folderAddFolderBtn, els.folderDropzone]
+        .forEach(el => el && el.classList.toggle('hidden', !state.editMode));
+
+      renderFolderContents(tile);
+      els.folderDialog.showModal();
+    }
+
+    function renderFolderContents(tile){
+      els.folderTiles.innerHTML = '';
+      const files = tile.files || [];
+      els.folderEmpty.style.display = files.length ? 'none' : 'block';
+
+      files.forEach(fileTile => {
+        const resolved = resolveFolderItem(fileTile);
+        const row = document.createElement('div');
+        row.className = 'folderRow';
+        const summary = resolved.type === 'folder'
+          ? `${(resolved.files || []).length} item(s)`
+          : (resolved.type === 'file' ? (resolved.fileHandleKey ? 'Lokale bestandssnelkoppeling' : 'Tik op openen') : (resolved.type === 'link' ? (resolved.url || resolved.body || '') : (resolved.type === 'checklist' ? `${(resolved.items || []).length} punt(en)` : (resolved.body || ''))));
+        row.innerHTML = `
+          <div class="tileIcon">${renderIconInner(resolved)}</div>
+          <div class="folderMeta">
+            <strong>${escapeHtml(resolved.name || resolved.fileName || 'Bestand')}</strong>
+            <span>${escapeHtml(summary || '')}</span>
+          </div>
+          <div class="rowBtns">
+            <button class="primary" data-act="open">Openen</button>
+            ${state.editMode ? '<button data-act="delete">Uit map</button>' : ''}
+          </div>
+        `;
+        row.querySelectorAll('[data-act]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const act = btn.dataset.act;
+            if(act === 'open'){
+              openFolderItemDirect(tile, fileTile);
+            }else if(act === 'delete'){
+              await moveFolderItemToTab(tile, fileTile);
+            }
+          });
+        });
+        els.folderTiles.appendChild(row);
+      });
+    }
+
+    async function addFilesToFolder(folderId, files){
+      const folder = findTileById(folderId);
+      if(!folder || folder.type !== 'folder') return;
+      folder.files = folder.files || [];
+      for(const file of files){
+        folder.files.push({
+          id:createId(),
+          type:'file',
+          name:cleanFileNameForTitle(file.name),
+          subtitle:'Bestand-snelkoppeling in map',
+          body:'',
+          emoji:chooseEmoji(file),
+          size:'normal',
+          fileName:cleanFileNameForTitle(file.name),
+          fileType:file.type || 'Snelkoppeling',
+          fileUrl:'',
+          fileDataUrl:null
+        });
+      }
+      render();
+      openFolder(folder);
+      saveState();
+      showToast('Alleen de bestandsnamen zijn toegevoegd. Plak per item nog een link of gedeelde locatie.');
+    }
+
+    function renderExistingTilePicker(){
+      const folderId = currentFolderTileId;
+      const folder = findTileById(folderId);
+      const existingRefIds = new Set(((folder?.files) || []).filter(x => x.type === 'tileRef').map(x => x.refId));
+      const items = (currentTab().tiles || []).filter(t => t.id !== folderId && !existingRefIds.has(t.id));
+      els.existingTileList.innerHTML = '';
+      els.existingTileEmpty.style.display = items.length ? 'none' : 'block';
+
+      items.forEach(tile => {
+        const row = document.createElement('div');
+        row.className = 'folderRow';
+        row.innerHTML = `
+          <div class="tileIcon">${renderIconInner(tile)}</div>
+          <div class="folderMeta">
+            <strong>${escapeHtml(tile.name || 'Tegel')}</strong>
+            <span>${escapeHtml(tile.subtitle || tile.type || '')}</span>
+          </div>
+          <div class="rowBtns"><button class="primary">Toevoegen</button></div>
+        `;
+        row.querySelector('button').addEventListener('click', () => {
+          const folder = findTileById(currentFolderTileId);
+          if(!folder || folder.type !== 'folder') return;
+          const tab = currentTab();
+          const index = (tab.tiles || []).findIndex(t => t.id === tile.id);
+          if(index === -1) return;
+          folder.files = folder.files || [];
+          folder.files.push(cloneTileForFolder(tile));
+          tab.tiles.splice(index, 1);
+          render();
+          renderFolderContents(folder);
+          saveState();
+          els.existingTileDialog.close();
+          showToast('Tegel naar map verplaatst');
+        });
+        els.existingTileList.appendChild(row);
+      });
+    }
+
+    function openExistingTilePicker(){
+      renderExistingTilePicker();
+      els.existingTileDialog.showModal();
+    }
+
+    function openFolderFileShortcutDialog(){
+      addingTileToFolder = true;
+      addingFolderToFolder = false;
+      openTileDialog(presetForType('file'));
+    }
+
+    function openFolderTileDialog(){
+      addingTileToFolder = true;
+      addingFolderToFolder = false;
+      openTileDialog(presetForType('note'));
+    }
+
+    function openFolderSubfolderDialog(){
+      addingTileToFolder = false;
+      addingFolderToFolder = true;
+      openTileDialog(presetForType('folder'));
+    }
+
+    function openDrawingFromTileDialog(){
+      drawingTargetTileId = editingTileId;
+      els.tileDialog.close();
+      openDrawingEditorForTile(editingTileId);
+    }
+
+    function openDrawingEditorForTile(tileId=null){
+      drawingTargetTileId = tileId || null;
+      drawingTargetCanvasItemId = null;
+      const canvas = els.doodleCanvas;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const tile = tileId ? findTileById(tileId) : null;
+      if(tile?.image){
+        const img = new Image();
+        img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        img.src = tile.image;
+      }
+      els.drawingDialog.showModal();
+    }
+
+    function openDrawingEditorForCanvasItem(itemId){
+      drawingTargetTileId = null;
+      drawingTargetCanvasItemId = itemId || null;
+      const canvas = els.doodleCanvas;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const item = (state.canvasItems || []).find(x => x.id === itemId);
+      if(item?.src){
+        const img = new Image();
+        img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        img.src = item.src;
+      }
+      els.drawingDialog.showModal();
+    }
+
+    function nextSavedIconName(){
+      return `Icoon ${((state.savedIcons || []).length) + 1}`;
+    }
+
+    function saveCurrentDrawingAsAppIcon(){
+      const image = els.doodleCanvas.toDataURL('image/png');
+      state.savedIcons = state.savedIcons || [];
+      state.savedIcons.unshift({id:createId(), name:nextSavedIconName(), src:image});
+      saveState();
+      setupIconPicker();
+      showToast('Tekening opgeslagen als icoon');
+    }
+
+    function walkFolderItems(items, visitor){
+      (items || []).forEach(item => {
+        visitor(item);
+        if(item?.type === 'folder' && Array.isArray(item.files)) walkFolderItems(item.files, visitor);
+      });
+    }
+
+    function clearDeletedIconUsage(iconSrc){
+      (state.tabs || []).forEach(tab => {
+        (tab.tiles || []).forEach(tile => {
+          if(tile?.iconImage === iconSrc){
+            tile.iconImage = null;
+            if(!tile.emoji) tile.emoji = defaultEmojiForType(tile.type);
+          }
+          if(tile?.type === 'folder') walkFolderItems(tile.files, item => {
+            if(item?.iconImage === iconSrc){
+              item.iconImage = null;
+              if(!item.emoji) item.emoji = defaultEmojiForType(item.type === 'tileRef' ? 'note' : item.type);
+            }
+          });
+        });
+      });
+      if(pendingTileIconImage === iconSrc){
+        pendingTileIconImage = null;
+        const fallback = els.tileType?.value ? defaultEmojiForType(els.tileType.value) : '📁';
+        if(els.tileEmoji) els.tileEmoji.value = fallback;
+      }
+    }
+
+    async function deleteSavedIcon(iconId){
+      const icon = (state.savedIcons || []).find(x => x.id === iconId);
+      if(!icon) return;
+      const ok = await confirmAction(`Weet je zeker dat je ${icon.name || 'dit eigen icoon'} wilt verwijderen?`);
+      if(!ok) return;
+      state.savedIcons = (state.savedIcons || []).filter(x => x.id !== iconId);
+      clearDeletedIconUsage(icon.src);
+      saveState();
+      setupIconPicker();
+      render();
+      highlightIcon(els.tileEmoji?.value || '');
+      showToast('Eigen icoon verwijderd');
+    }
+
+    function setupIconPicker(){
+      els.iconPicker.innerHTML = '';
+      DEFAULT_ICONS.forEach(icon => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pick';
+        btn.dataset.iconType = 'emoji';
+        btn.dataset.iconValue = icon;
+        btn.textContent = icon;
+        btn.addEventListener('click', () => {
+          pendingTileIconImage = null;
+          els.tileEmoji.value = icon;
+          if(els.tileIconUrl) els.tileIconUrl.value = '';
+          highlightIcon(icon);
+        });
+        els.iconPicker.appendChild(btn);
+      });
+      (state.savedIcons || []).forEach(icon => {
+        const wrap = document.createElement('div');
+        wrap.className = 'pickWrap';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pick';
+        btn.dataset.iconType = 'image';
+        btn.dataset.iconValue = icon.id;
+        btn.title = icon.name || 'Eigen icoon';
+        btn.innerHTML = `<img src="${icon.src}" alt="${escapeHtml(icon.name || 'Eigen icoon')}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
+        btn.addEventListener('click', () => {
+          pendingTileIconImage = icon.src;
+          els.tileEmoji.value = '';
+          if(els.tileIconUrl) els.tileIconUrl.value = '';
+          highlightIcon(icon.src);
+        });
+
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'pickDelete';
+        del.title = 'Verwijder eigen icoon';
+        del.textContent = '×';
+        del.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          await deleteSavedIcon(icon.id);
+        });
+
+        wrap.appendChild(btn);
+        wrap.appendChild(del);
+        els.iconPicker.appendChild(wrap);
+      });
+    }
+    function highlightIcon(icon){
+      [...els.iconPicker.children].forEach(node => {
+        const btn = node.classList?.contains('pick') ? node : node.querySelector('.pick');
+        if(!btn) return;
+        const isImage = btn.dataset.iconType === 'image';
+        const match = isImage ? (((state.savedIcons || []).find(x => x.id === btn.dataset.iconValue)?.src || '') === icon) : (btn.dataset.iconValue === icon);
+        btn.classList.toggle('active', !!match);
+      });
+    }
+
+    function syncThemeSettingsUI(){
+      const theme = getThemeColors();
+      if(els.settingsTheme) els.settingsTheme.value = state.theme || 'rose';
+    }
+
+    function openSettingsDialog(){
+      els.settingsTheme.value = state.theme || 'rose';
+      syncThemeSettingsUI();
+      els.settingsFontFamily.value = state.fontFamily || 'Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+      els.settingsDeepEdit.value = state.deepEdit ? 'on' : 'off';
+      els.settingsDialog.showModal();
+    }
+
+    function saveSettings(e){
+      e.preventDefault();
+      state.theme = els.settingsTheme.value || 'rose';
+      const preset = THEME_PRESETS[state.theme];
+      if(preset?.accent) state.accent = preset.accent;
+      state.fontFamily = els.settingsFontFamily.value || state.fontFamily;
+      if(els.settingsDeepEdit.value === 'on' && !state.deepEdit){
+        pinCodeBuffer = '';
+        updatePinDisplay();
+        els.deepEditDialog.showModal();
+      }
+      if(els.settingsDeepEdit.value === 'off') state.deepEdit = false;
+      applyTheme();
+      render();
+      els.settingsDialog.close();
+    }
+
+    function updatePinDisplay(){
+      els.pinDisplay.textContent = pinCodeBuffer.padEnd(6,'•').slice(0,6);
+    }
+    function handlePinPadClick(e){
+      const btn = e.target.closest('.pinKey');
+      if(!btn || !btn.dataset.key) return;
+      if(pinCodeBuffer.length >= 6) return;
+      pinCodeBuffer += btn.dataset.key;
+      updatePinDisplay();
+    }
+    function submitDeepEditCode(){
+      if(pinCodeBuffer === '1234'){
+        state.deepEdit = true;
+        pinCodeBuffer = '';
+        updatePinDisplay();
+        els.deepEditDialog.close();
+        applyTheme();
+        render();
+        saveState();
+        showToast('Intensief bewerken is aan');
+      }else{
+        state.deepEdit = false;
+        els.settingsDeepEdit.value = 'off';
+        pinCodeBuffer = '';
+        updatePinDisplay();
+        els.deepEditDialog.close();
+        applyTheme();
+        render();
+        showToast('Jammer Maarten');
+      }
+    }
+
+    function openFileChoiceDialog(tile){
+      currentFileTileId = tile.id;
+      currentPreviewTile = tile;
+      els.fileOpenForm.reset();
+      els.fileOpenDialog.showModal();
+    }
+
+    function handleFileOpenChoice(e){
+      e.preventDefault();
+      const mode = document.querySelector('input[name="openMethod"]:checked')?.value || 'preview';
+      if(!currentPreviewTile) return;
+      openStoredFile(currentPreviewTile, mode);
+      els.fileOpenDialog.close();
+    }
+
+    function openStoredFile(tile, mode='preview'){
+      if(tile.fileUrl){
+        openFileShortcut(tile);
+        return;
+      }
+      if(!tile.fileDataUrl){
+        showToast('Dit bestand is niet beschikbaar');
+        return;
+      }
+      if(mode === 'download'){
+        const a = document.createElement('a');
+        a.href = tile.fileDataUrl;
+        a.download = tile.fileName || 'bestand';
+        a.click();
+        return;
+      }
+      if(mode === 'newtab'){
+        const a = document.createElement('a');
+        a.href = tile.fileDataUrl;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.click();
+        return;
+      }
+      openPreview(tile);
+    }
+
+    function openPreview(tile){
+      currentPreviewTile = tile;
+      els.previewTitle.textContent = tile.name || tile.fileName || 'Voorbeeld';
+      els.previewSubtitle.textContent = tile.fileName || 'Bestand bekijken';
+      const url = tile.fileDataUrl || tile.image || '';
+      const effectiveType = tile.fileType || ((url||'').startsWith('data:image/') ? 'image/png' : '');
+      if(effectiveType.startsWith('image/') || (url||'').startsWith('data:image/')){
+        els.previewArea.innerHTML = `<img src="${url}" alt="" style="max-width:100%;max-height:60vh;border-radius:14px">`;
+      }else if(effectiveType === 'application/pdf'){
+        els.previewArea.innerHTML = `<iframe src="${url}" style="width:100%;height:60vh;border:0;border-radius:14px;background:#fff"></iframe>`;
+      }else{
+        const text = decodeDataText(url) || tile.body || 'Voorbeeld niet beschikbaar';
+        els.previewArea.innerHTML = `<div style="white-space:pre-wrap;font-family:ui-monospace,monospace">${escapeHtml(text)}</div>`;
+      }
+      els.previewDialog.showModal();
+    }
+
+    function openFolderItemDirect(folderTile, item){
+      if(!item) return;
+      const openTileInCenter = (tileId) => {
+        const tile = findTileById(tileId);
+        if(!tile) return false;
+        els.folderDialog.close();
+        focusTileInApp(tileId);
+        if(['note','checklist','photo','draw'].includes(tile.type)){
+          setTimeout(() => openTileDialog(tile), 180);
+        }
+        showToast('Tegel geopend in de app');
+        return true;
+      };
+
+      if(item?.type === 'tileRef'){
+        if(openTileInCenter(item.refId)) return;
+        showToast('Deze tegel is niet meer gevonden');
+        return;
+      }
+      if(item.type === 'folder'){
+        openFolder(item);
+        return;
+      }
+      if(['note','checklist','photo','draw','link','file'].includes(item.type)){
+        const madeId = materializeFolderItemAsTile(folderTile, item, true);
+        if(madeId && openTileInCenter(madeId)) return;
+      }
+      if((item.fileName || '').endsWith('.url.txt') && (item.body || '').startsWith('http')){
+        window.open(item.body, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      if(item.type === 'file' && (item.fileHandleKey || item.fileUrl || item.fileDataUrl || item.body)){
+        openFileShortcut({fileHandleKey:item.fileHandleKey || '', fileUrl:item.fileUrl || item.fileDataUrl || item.body, fileName:item.fileName || item.name});
+        return;
+      }
+      const type = item.fileType || '';
+      const url = item.fileDataUrl || item.image || '';
+      if(type.startsWith('image/') || url.startsWith('data:image/')){
+        openPreview({...item, fileType:type || 'image/png', fileDataUrl:url});
+        return;
+      }
+      if(url){
+        openStoredFile({fileDataUrl:url, fileName:item.fileName || item.name || 'bestand', fileType:type || ''}, 'newtab');
+        return;
+      }
+      showToast('Openen lukt niet voor dit item');
+    }
+
+    function decodeDataText(url){
+      try{
+        if(!url.startsWith('data:text/plain')) return '';
+        return decodeURIComponent(url.split(',')[1] || '');
+      }catch{return ''}
+    }
+
+    function exportBackup(){
+      const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'maartens-place-backup.json';
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(url), 1200);
+    }
+
+    function importBackup(e){
+      const file = e.target.files?.[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const parsed = JSON.parse(reader.result);
+          if(!parsed.tabs?.length) throw new Error();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          location.reload();
+        }catch{
+          showToast('Deze back-up kon niet worden ingelezen');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    function chooseEmoji(file){
+      const name = (file.name || '').toLowerCase();
+      if (/(png|jpg|jpeg|gif|webp|svg)$/.test(name)) return '🖼️';
+      if (/(pdf)$/.test(name)) return '📕';
+      if (/(doc|docx|txt|rtf)$/.test(name)) return '📄';
+      if (/(xls|xlsx|csv)$/.test(name)) return '📊';
+      if (/(mp3|wav|ogg)$/.test(name)) return '🎵';
+      if (/(mp4|mov|avi|mkv)$/.test(name)) return '🎬';
+      return '📁';
+    }
+
+    function fileToDataUrl(file){
+      return new Promise((resolve,reject)=>{
+        const reader = new FileReader();
+        reader.onload = ()=>resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function addCanvasItem(src,x=40,y=40,w=180,h=180,kind='photo'){
+      state.canvasItems.push({id:createId(), src, x, y, w, h, kind});
+      renderCanvasItems();
+      saveState();
+    }
+
+    function convertCanvasItemToTile(itemId){
+      const item = (state.canvasItems || []).find(x => x.id === itemId);
+      if(!item || !item.src) return;
+      const type = item.kind === 'draw' ? 'draw' : 'photo';
+      currentTab().tiles.push({
+        id:createId(),
+        type,
+        name:type === 'draw' ? 'Tekening' : 'Foto',
+        subtitle:'',
+        body:'',
+        emoji:type === 'draw' ? '✏️' : '🖼️',
+        size:'normal',
+        image:item.src
+      });
+      render();
+      showToast(type === 'draw' ? 'Tekening omgezet naar tegel' : 'Foto omgezet naar tegel');
+    }
+
+    function renderCanvasItems(){
+      document.querySelectorAll('.canvasItem').forEach(el=>el.remove());
+      const board = document.querySelector('.board');
+      if(!board) return;
+      (state.canvasItems || []).forEach(item=>{
+        const el = document.createElement('div');
+        if(!item.kind) item.kind = 'photo';
+        el.className = 'canvasItem';
+        el.style.left = item.x + 'px';
+        el.style.top = item.y + 'px';
+        el.style.width = item.w + 'px';
+        el.style.height = item.h + 'px';
+        const tools = [];
+        if(item.kind === 'draw') tools.push('<button class="mini" data-act="editdraw">✏️</button>');
+        tools.push('<button class="mini" data-act="tile">▣</button>');
+        if(state.editMode){
+          tools.push('<button class="mini" data-act="dup">⧉</button>');
+          tools.push('<button class="mini" data-act="del">✕</button>');
+        }
+        el.innerHTML = `<div class="canvasTools">${tools.join('')}</div><img src="${item.src}" alt=""><div class="resizeHandle${state.editMode ? '' : ' hidden'}"></div>`;
+        board.appendChild(el);
+
+        let dragging=false,resizing=false,startX=0,startY=0,startL=0,startT=0,startW=0,startH=0;
+        const pointerDownDrag = (e) => {
+          if(!state.editMode) return;
+          if(e.target.closest('.mini') || e.target.classList.contains('resizeHandle')) return;
+          dragging = true;
+          startX = getClientX(e); startY = getClientY(e);
+          startL = item.x; startT = item.y;
+          e.preventDefault();
+        };
+        const pointerDownResize = (e) => {
+          if(!state.editMode) return;
+          resizing = true;
+          startX = getClientX(e); startY = getClientY(e);
+          startW = item.w; startH = item.h;
+          e.preventDefault();
+          e.stopPropagation();
+        };
+        el.addEventListener('mousedown', pointerDownDrag);
+        el.addEventListener('touchstart', pointerDownDrag, {passive:false});
+        el.querySelector('.resizeHandle')?.addEventListener('mousedown', pointerDownResize);
+        el.querySelector('.resizeHandle')?.addEventListener('touchstart', pointerDownResize, {passive:false});
+
+        const move = (e) => {
+          const cx = getClientX(e), cy = getClientY(e);
+          if(dragging){
+            item.x = Math.max(0, startL + (cx - startX));
+            item.y = Math.max(0, startT + (cy - startY));
+            el.style.left = item.x + 'px';
+            el.style.top = item.y + 'px';
+          }
+          if(resizing){
+            item.w = Math.max(100, startW + (cx - startX));
+            item.h = Math.max(100, startH + (cy - startY));
+            el.style.width = item.w + 'px';
+            el.style.height = item.h + 'px';
+          }
+        };
+        const up = () => {
+          if(dragging || resizing) saveState();
+          dragging=false;resizing=false;
+        };
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+        window.addEventListener('touchmove', move, {passive:false});
+        window.addEventListener('touchend', up);
+
+        el.querySelectorAll('.mini').forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            if(btn.dataset.act === 'editdraw'){
+              openDrawingEditorForCanvasItem(item.id);
+            }else if(btn.dataset.act === 'tile'){
+              convertCanvasItemToTile(item.id);
+            }else if(btn.dataset.act === 'del'){
+              confirmAction(item.kind === 'draw' ? 'Weet je zeker dat je deze paginatekening wilt verwijderen?' : 'Weet je zeker dat je deze paginafoto wilt verwijderen?').then(ok => {
+                if(!ok) return;
+                state.canvasItems = state.canvasItems.filter(x=>x.id!==item.id);
+                renderCanvasItems(); saveState(); showToast(item.kind === 'draw' ? 'Tekening verwijderd' : 'Foto verwijderd');
+              });
+            }else if(btn.dataset.act === 'dup'){
+              state.canvasItems.push({...item,id:createId(),x:item.x+18,y:item.y+18});
+              renderCanvasItems(); saveState(); showToast(item.kind === 'draw' ? 'Tekening gedupliceerd' : 'Foto gedupliceerd');
+            }
+          });
+        });
+      });
+    }
+
+    function getClientX(e){ return 'touches' in e ? e.touches[0].clientX : e.clientX; }
+    function getClientY(e){ return 'touches' in e ? e.touches[0].clientY : e.clientY; }
+
+    function initDrawing(){
+      const canvas = els.doodleCanvas;
+      const ctx = canvas.getContext('2d');
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = drawColor;
+      ctx.lineWidth = drawSize;
+
+      const applyDrawToolUI = () => {
+        const usingEraser = drawTool === 'eraser';
+        ctx.globalCompositeOperation = usingEraser ? 'destination-out' : 'source-over';
+        ctx.strokeStyle = usingEraser ? 'rgba(0,0,0,1)' : drawColor;
+        ctx.lineWidth = usingEraser ? Math.max(drawSize * 2, 12) : drawSize;
+        els.drawPenBtn.classList.toggle('active', !usingEraser);
+        els.drawEraserBtn.classList.toggle('active', usingEraser);
+        els.drawSizeValue.textContent = String(drawSize);
+        els.drawSizeRange.value = String(drawSize);
+      };
+
+      const colors = ['#1d2a3a','#c85f8d','#2e8b6d','#315efb','#d48806','#b42318','#000000'];
+      els.drawColorRow.innerHTML = '';
+      els.drawCustomColor.value = drawColor;
+      const setDrawColor = (color) => {
+        drawColor = color;
+        els.drawCustomColor.value = color;
+        ctx.strokeStyle = color;
+        [...els.drawColorRow.children].forEach(x => x.classList.toggle('active', x.dataset.color === color));
+        drawTool = 'pen';
+        applyDrawToolUI();
+      };
+      colors.forEach(color => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'colorDot' + (color === drawColor ? ' active' : '');
+        b.style.background = color;
+        b.addEventListener('click', () => {
+          drawColor = color;
+          drawTool = 'pen';
+          [...els.drawColorRow.children].forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          applyDrawToolUI();
+        });
+        els.drawColorRow.appendChild(b);
+      });
+      setDrawColor(drawColor);
+
+      els.drawApplyCustomColorBtn.addEventListener('click', () => {
+        setDrawColor(els.drawCustomColor.value || '#1d2a3a');
+      });
+      els.drawCustomColor.addEventListener('input', () => {
+        setDrawColor(els.drawCustomColor.value || '#1d2a3a');
+      });
+      els.drawSizeRange.addEventListener('input', () => {
+        drawSize = Number(els.drawSizeRange.value || 4);
+        applyDrawToolUI();
+      });
+      els.drawPenBtn.addEventListener('click', () => {
+        drawTool = 'pen';
+        applyDrawToolUI();
+      });
+      els.drawEraserBtn.addEventListener('click', () => {
+        drawTool = 'eraser';
+        applyDrawToolUI();
+      });
+      applyDrawToolUI();
+
+      let drawing = false;
+      const pos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = (getClientX(e) - rect.left) * (canvas.width / rect.width);
+        const y = (getClientY(e) - rect.top) * (canvas.height / rect.height);
+        return {x,y};
+      };
+
+      const start = (e) => {
+        drawing = true;
+        const p = pos(e);
+        ctx.beginPath();
+        ctx.moveTo(p.x,p.y);
+        e.preventDefault();
+      };
+      const move = (e) => {
+        if(!drawing) return;
+        const p = pos(e);
+        applyDrawToolUI();
+        ctx.lineTo(p.x,p.y);
+        ctx.stroke();
+        e.preventDefault();
+      };
+      const stop = () => {
+        if(!drawing) return;
+        drawing = false;
+        ctx.closePath();
+      };
+
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', stop);
+      canvas.addEventListener('touchstart', start, {passive:false});
+      canvas.addEventListener('touchmove', move, {passive:false});
+      window.addEventListener('touchend', stop);
+
+      els.drawClearBtn.addEventListener('click', async () => {
+        const ok = await confirmAction('Weet je zeker dat je deze tekening wilt wissen?');
+        if(!ok) return;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+      });
+      els.drawSaveIconBtn.addEventListener('click', () => {
+        saveCurrentDrawingAsAppIcon();
+      });
+      els.drawSaveBtn.addEventListener('click', () => {
+        const image = canvas.toDataURL('image/png');
+        if(drawingTargetCanvasItemId){
+          const item = (state.canvasItems || []).find(x => x.id === drawingTargetCanvasItemId);
+          if(item){
+            item.src = image;
+            item.kind = 'draw';
+            renderCanvasItems();
+            saveState();
+            els.drawingDialog.close();
+            showToast('Tekening op pagina aangepast');
+            return;
+          }
+        }
+        addCanvasItem(image, 60, 110, 220, 160, 'draw');
+        els.drawingDialog.close();
+        showToast('Tekening geplaatst');
+      });
+      els.drawSaveTileBtn.addEventListener('click', () => {
+        const image = canvas.toDataURL('image/png');
+        if(drawingTargetCanvasItemId){
+          currentTab().tiles.push({
+            id:createId(),
+            type:'draw',
+            name:'Tekening',
+            subtitle:'',
+            body:'',
+            emoji:'✏️',
+            size:'normal',
+            image
+          });
+          els.drawingDialog.close();
+          render();
+          showToast('Paginatekening omgezet naar tegel');
+          return;
+        }
+        if(drawingTargetTileId){
+          const tile = findTileById(drawingTargetTileId);
+          if(tile){
+            tile.type = 'draw';
+            tile.name = tile.name || 'Tekening';
+            tile.emoji = tile.emoji || '✏️';
+            tile.image = image;
+            render();
+            els.drawingDialog.close();
+            showToast('Tekening aangepast');
+            return;
+          }
+        }
+        const tab = currentTab();
+        tab.tiles.push({
+          id:createId(),
+          type:'draw',
+          name:'Tekening',
+          subtitle:'',
+          body:'',
+          emoji:'✏️',
+          size:'normal',
+          image
+        });
+        els.drawingDialog.close();
+        render();
+        showToast('Tekening als tegel opgeslagen');
+      });
+    }
+
+
+    /* ──────────────────────────────────────────────────────────────
+       Supabase-koppeling MaartensPlace - behoudende laag
+       Bestaande functies blijven intact. Deze laag vervangt alleen:
+       - saveState(): lokale cache + geplande sync naar Supabase
+       - importBackup(): JSON importeren naar state én Supabase
+       Supabase bewaart lichte data. Base64/tekeningen/foto's/eigen iconen blijven lokaal.
+    ────────────────────────────────────────────────────────────── */
+
+    async function bootSupabase(){
+      try{
+        if(!window.supabase || !window.supabase.createClient){
+          console.warn('Supabase SDK niet geladen');
+          showToast('Supabase SDK niet geladen; lokale modus actief');
+          return;
+        }
+        mpSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        await loadStateFromSupabase();
+      }catch(err){
+        console.error('Supabase laden mislukt:', err);
+        mpDbReady = false;
+        showToast('Database niet bereikbaar; lokale modus actief');
+      }
+    }
+
+    function replaceState(nextState){
+      Object.keys(state).forEach(k => delete state[k]);
+      Object.assign(state, defaultState(), nextState || {});
+      if(!state.canvasItems) state.canvasItems = [];
+      if(!state.savedIcons) state.savedIcons = [];
+      if(!state.tileHistory) state.tileHistory = [];
+      if(!state.defaultHistory) state.defaultHistory = [];
+      if(!state.tabs || !state.tabs.length) state.tabs = defaultState().tabs;
+      if(!state.selectedTabId || !state.tabs.some(t => t.id === state.selectedTabId)){
+        state.selectedTabId = state.tabs[0]?.id || '';
+      }
+    }
+
+    function isDataUrl(value=''){
+      return /^data:/i.test(String(value || ''));
+    }
+    function isHttpUrl(value=''){
+      return /^https?:\/\//i.test(String(value || ''));
+    }
+
+    function loadLocalHeavyAssets(){
+      try{
+        return JSON.parse(localStorage.getItem(LOCAL_ASSETS_KEY) || '{}') || {};
+      }catch{
+        return {};
+      }
+    }
+
+    function saveLocalHeavyAssets(){
+      const assets = {
+        canvasItems: JSON.parse(JSON.stringify(state.canvasItems || [])),
+        savedIcons: JSON.parse(JSON.stringify(state.savedIcons || [])),
+        tileImages: {},
+        tileIconImages: {},
+        tileHistory: JSON.parse(JSON.stringify(state.tileHistory || [])),
+        updatedAt: new Date().toISOString()
+      };
+      const visit = (tile) => {
+        if(!tile) return;
+        if(tile.image && isDataUrl(tile.image)) assets.tileImages[tile.id] = tile.image;
+        if(tile.iconImage && isDataUrl(tile.iconImage)) assets.tileIconImages[tile.id] = tile.iconImage;
+        if(tile.type === 'folder') (tile.files || []).forEach(visit);
+      };
+      (state.tabs || []).forEach(tab => (tab.tiles || []).forEach(visit));
+      try{
+        localStorage.setItem(LOCAL_ASSETS_KEY, JSON.stringify(assets));
+      }catch(err){
+        console.warn('Lokale zware assets opslaan lukte niet:', err);
+      }
+    }
+
+    function sanitizeTileForCache(tile){
+      const copy = JSON.parse(JSON.stringify(tile || {}));
+      if(copy.image && isDataUrl(copy.image)) copy.image = null;
+      if(copy.iconImage && isDataUrl(copy.iconImage)) copy.iconImage = null;
+      if(copy.fileDataUrl && isDataUrl(copy.fileDataUrl)) copy.fileDataUrl = null;
+      if(Array.isArray(copy.files)) copy.files = copy.files.map(sanitizeTileForCache);
+      return copy;
+    }
+
+    function sanitizeStateForLocalCache(src){
+      const copy = JSON.parse(JSON.stringify(src || {}));
+      copy.canvasItems = [];
+      copy.savedIcons = (copy.savedIcons || []).filter(icon => icon?.src && isHttpUrl(icon.src));
+      copy.tileHistory = (copy.tileHistory || []).map(sanitizeTileForCache);
+      copy.defaultHistory = (copy.defaultHistory || []).map(sanitizeTileForCache);
+      copy.tabs = (copy.tabs || []).map(tab => ({
+        ...tab,
+        tiles: (tab.tiles || []).map(sanitizeTileForCache)
+      }));
+      return copy;
+    }
+
+    function saveState(){
+      try{
+        saveLocalHeavyAssets();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizeStateForLocalCache(state)));
+      }catch(err){
+        console.warn('Lokale cache opslaan lukte niet:', err);
+      }
+      scheduleSupabaseSync();
+    }
+
+    function scheduleSupabaseSync(){
+      if(!mpSupabase || !mpDbReady || mpDbLoading || mpDbSyncing) return;
+      clearTimeout(mpDbSyncTimer);
+      mpDbSyncTimer = setTimeout(() => syncStateToSupabaseNow('autosave', false), 650);
+    }
+
+    async function loadStateFromSupabase(){
+      if(!mpSupabase) return;
+      mpDbLoading = true;
+      try{
+        const [dashRes, settingsRes, tabsRes, tilesRes, libRes] = await Promise.all([
+          mpSupabase.from('mp_dashboards').select('*').eq('id', MP_DASHBOARD_ID).maybeSingle(),
+          mpSupabase.from('mp_settings').select('*').eq('dashboard_id', MP_DASHBOARD_ID).maybeSingle(),
+          mpSupabase.from('mp_tabs').select('*').eq('dashboard_id', MP_DASHBOARD_ID).eq('is_archived', false).order('position', {ascending:true}),
+          mpSupabase.from('mp_tiles').select('*').eq('dashboard_id', MP_DASHBOARD_ID).eq('is_archived', false).order('position', {ascending:true}),
+          mpSupabase.from('mp_tile_library').select('*').eq('dashboard_id', MP_DASHBOARD_ID).order('position', {ascending:true})
+        ]);
+        const err = dashRes.error || settingsRes.error || tabsRes.error || tilesRes.error || libRes.error;
+        if(err) throw err;
+        const dash = dashRes.data;
+        const tabs = tabsRes.data || [];
+        if(!dash || !tabs.length){
+          mpDbReady = false;
+          showToast('Database leeg: run eerst de SQL of importeer JSON');
+          return;
+        }
+        const nextState = dbRowsToState(
+          dash,
+          settingsRes.data,
+          tabs,
+          tilesRes.data || [],
+          libRes.data || [],
+          loadLocalHeavyAssets()
+        );
+        replaceState(nextState);
+        mpDbReady = true;
+        applyTheme();
+        render();
+        setupIconPicker();
+        if(typeof renderHistoryTiles === 'function') renderHistoryTiles();
+        showToast('Geladen uit Supabase');
+      }catch(err){
+        console.error('Supabase lezen mislukt:', err);
+        mpDbReady = false;
+        showToast('Supabase lezen mislukt');
+      }finally{
+        mpDbLoading = false;
+      }
+    }
+
+    function dbRowsToState(dash, settings, tabRows, tileRows, libraryRows, localAssets){
+      const next = defaultState();
+      next.title = dash?.name || next.title;
+      next.subtitle = dash?.subtitle || next.subtitle;
+      next.theme = settings?.theme || next.theme;
+      next.fontFamily = settings?.font_family || next.fontFamily;
+      next.viewMode = settings?.view_mode || next.viewMode;
+      next.seniorMode = !!settings?.senior_mode;
+      next.deepEdit = !!settings?.deep_edit;
+      next.selectedTabId = settings?.selected_tab_id || tabRows[0]?.id || next.selectedTabId;
+      next.canvasItems = localAssets.canvasItems || [];
+      next.savedIcons = localAssets.savedIcons || [];
+      next.tileHistory = localAssets.tileHistory || [];
+      next.defaultHistory = (libraryRows || []).map(row => ({
+        id: row.id,
+        type: row.type,
+        name: row.name,
+        subtitle: '',
+        body: '',
+        emoji: row.emoji || defaultEmojiForType(row.type),
+        iconImage: row.icon_url || null,
+        url: row.url || '',
+        size: 'normal',
+        isDefault: !!row.is_default
+      }));
+
+      const tabMap = new Map();
+      next.tabs = (tabRows || []).map(row => {
+        const tab = {id: row.id, name: row.name, description: row.description || '', tiles: []};
+        tabMap.set(tab.id, tab);
+        return tab;
+      });
+
+      const tileMap = new Map();
+      (tileRows || []).forEach(row => tileMap.set(row.id, dbRowToTile(row, localAssets)));
+      (tileRows || []).forEach(row => {
+        const tile = tileMap.get(row.id);
+        if(!tile) return;
+        if(row.parent_folder_id){
+          const parent = tileMap.get(row.parent_folder_id);
+          if(parent){
+            parent.files = parent.files || [];
+            parent.files.push(tile);
+          }
+        }else{
+          const tab = tabMap.get(row.tab_id);
+          if(tab) tab.tiles.push(tile);
+        }
+      });
+      if(!next.tabs.some(t => t.id === next.selectedTabId)) next.selectedTabId = next.tabs[0]?.id || '';
+      if(!next.defaultHistory.length){
+        next.defaultHistory = JSON.parse(JSON.stringify(DEFAULT_HISTORY_TILES)).map(t => ({id:createId(), ...t, isDefault:true, size:'normal'}));
+      }
+      return next;
+    }
+
+    function dbRowToTile(row, localAssets){
+      const cj = row.content_json || {};
+      const tile = {
+        id: row.id,
+        type: row.type,
+        name: row.name || defaultNameForType(row.type),
+        subtitle: row.subtitle || '',
+        body: row.body || '',
+        emoji: row.emoji || defaultEmojiForType(row.type),
+        iconImage: row.icon_url || localAssets.tileIconImages?.[row.id] || null,
+        size: row.size || 'normal'
+      };
+      if(row.type === 'link') tile.url = row.url || '';
+      if(row.type === 'file'){
+        tile.fileUrl = row.url || '';
+        tile.fileDataUrl = null;
+        tile.fileHandleKey = cj.fileHandleKey || '';
+        tile.fileName = cj.fileName || tile.name;
+        tile.fileType = cj.fileType || 'Snelkoppeling';
+      }
+      if(row.type === 'checklist') tile.items = Array.isArray(cj.items) ? cj.items : [];
+      if(row.type === 'folder') tile.files = [];
+      if(row.type === 'photo' || row.type === 'draw') tile.image = cj.imageUrl || localAssets.tileImages?.[row.id] || null;
+      return tile;
+    }
+
+    function normalizeDbType(type){
+      return ['link','file','folder','note','checklist','photo','draw'].includes(type) ? type : 'note';
+    }
+
+    function normalizeDbId(id, prefix='item'){
+      return String(id || (prefix + '-' + createId())).replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 180);
+    }
+
+    function buildRowsFromState(){
+      const tabRows = [];
+      const tileRows = [];
+      (state.tabs || []).forEach((tab, tabIndex) => {
+        const tabId = normalizeDbId(tab.id, 'tab');
+        tab.id = tabId;
+        tabRows.push({
+          id: tabId,
+          dashboard_id: MP_DASHBOARD_ID,
+          name: tab.name || 'Tabblad',
+          description: tab.description || '',
+          position: (tabIndex + 1) * 10,
+          is_archived: false
+        });
+        (tab.tiles || []).forEach((tile, tileIndex) => pushTileRow(tile, tabId, null, (tileIndex + 1) * 10, tileRows));
+      });
+      return {tabRows, tileRows};
+    }
+
+    function pushTileRow(tile, tabId, parentId, position, rows){
+      if(!tile) return;
+      tile.id = normalizeDbId(tile.id, 'tile');
+      const type = normalizeDbType(tile.type);
+      const content = {};
+      let url = type === 'link' ? (tile.url || '') : '';
+      const iconUrl = tile.iconImage && isHttpUrl(tile.iconImage) ? tile.iconImage : null;
+      if(type === 'file'){
+        url = tile.fileUrl || (tile.fileDataUrl && !isDataUrl(tile.fileDataUrl) ? tile.fileDataUrl : '') || tile.url || '';
+        content.fileName = tile.fileName || tile.name || '';
+        content.fileType = tile.fileType || 'Snelkoppeling';
+        content.fileHandleKey = tile.fileHandleKey || '';
+      }
+      if(type === 'checklist') content.items = Array.isArray(tile.items) ? tile.items : [];
+      if(type === 'photo' || type === 'draw'){
+        if(tile.image && isHttpUrl(tile.image)) content.imageUrl = tile.image;
+        else if(tile.image && isDataUrl(tile.image)) content.localImageKey = tile.id;
+      }
+      rows.push({
+        id: tile.id,
+        dashboard_id: MP_DASHBOARD_ID,
+        tab_id: tabId,
+        parent_folder_id: parentId || null,
+        type,
+        name: tile.name || defaultNameForType(type),
+        subtitle: tile.subtitle || '',
+        body: tile.body || '',
+        url,
+        emoji: iconUrl ? '' : (tile.emoji || defaultEmojiForType(type)),
+        icon_url: iconUrl,
+        size: tile.size === 'large' ? 'large' : 'normal',
+        content_json: content,
+        position,
+        is_archived: false
+      });
+      if(type === 'folder'){
+        (tile.files || []).forEach((child, i) => pushTileRow(child, tabId, tile.id, (i + 1) * 10, rows));
+      }
+    }
+
+    async function syncStateToSupabaseNow(reason='save', force=false){
+      if(!mpSupabase || (!mpDbReady && !force) || mpDbLoading || mpDbSyncing) return;
+      mpDbSyncing = true;
+      try{
+        saveLocalHeavyAssets();
+        const {tabRows, tileRows} = buildRowsFromState();
+        const dashPayload = {
+          id: MP_DASHBOARD_ID,
+          name: state.title || 'Maartens Place',
+          subtitle: state.subtitle || '',
+          owner_name: 'Maarten'
+        };
+        const settingsPayload = {
+          dashboard_id: MP_DASHBOARD_ID,
+          theme: state.theme || 'rose',
+          font_family: state.fontFamily || '',
+          view_mode: state.viewMode || 'comfort',
+          senior_mode: !!state.seniorMode,
+          deep_edit: !!state.deepEdit,
+          selected_tab_id: state.selectedTabId || null,
+          settings_json: {lastWriteReason: reason, syncedAt: new Date().toISOString()}
+        };
+        let res;
+        res = await mpSupabase.from('mp_dashboards').upsert(dashPayload); if(res.error) throw res.error;
+        res = await mpSupabase.from('mp_settings').upsert(settingsPayload); if(res.error) throw res.error;
+        res = await mpSupabase.from('mp_tiles').delete().eq('dashboard_id', MP_DASHBOARD_ID); if(res.error) throw res.error;
+        res = await mpSupabase.from('mp_tabs').delete().eq('dashboard_id', MP_DASHBOARD_ID); if(res.error) throw res.error;
+        if(tabRows.length){
+          res = await mpSupabase.from('mp_tabs').insert(tabRows);
+          if(res.error) throw res.error;
+        }
+        if(tileRows.length){
+          const inserted = new Set();
+          let remaining = [...tileRows];
+          let safety = 0;
+          while(remaining.length && safety < 50){
+            safety++;
+            const ready = remaining.filter(r => !r.parent_folder_id || inserted.has(r.parent_folder_id));
+            if(!ready.length) throw new Error('Mapstructuur kon niet worden opgeslagen: parent_folder_id ontbreekt.');
+            res = await mpSupabase.from('mp_tiles').insert(ready);
+            if(res.error) throw res.error;
+            ready.forEach(r => inserted.add(r.id));
+            remaining = remaining.filter(r => !inserted.has(r.id));
+          }
+          if(remaining.length) throw new Error('Niet alle tegels konden worden opgeslagen.');
+        }
+        mpDbReady = true;
+        showToast(reason === 'json-import' ? 'JSON staat nu in Supabase' : 'Opgeslagen in Supabase');
+      }catch(err){
+        console.error('Supabase sync mislukt:', err);
+        showToast('Opslaan naar Supabase mislukt: ' + (err.message || 'onbekende fout'));
+      }finally{
+        mpDbSyncing = false;
+      }
+    }
+
+    function importBackup(e){
+      const file = e.target.files?.[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try{
+          const parsed = JSON.parse(reader.result);
+          if(!parsed.tabs?.length) throw new Error('Geen MaartensPlace-tabs gevonden');
+          replaceState(parsed);
+          saveLocalHeavyAssets();
+          applyTheme();
+          render();
+          if(!mpSupabase && window.supabase?.createClient){
+            mpSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          }
+          await syncStateToSupabaseNow('json-import', true);
+          await loadStateFromSupabase();
+        }catch(err){
+          console.error('JSON-import mislukt:', err);
+          showToast('Import mislukt: ' + (err.message || 'onbekende fout'));
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+  </script>
+
+  <!-- PWA service worker: nodig zodat Chrome/Edge de site als app kan installeren -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "Maartens Place",
+  "short_name": "Maartens",
+  "description": "Maartens Place als installeerbare webapp.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6eef2",
+  "theme_color": "#c85f8d",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
