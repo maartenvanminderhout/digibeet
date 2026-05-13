@@ -2,7 +2,7 @@ name: Supabase keep alive
 
 on:
   schedule:
-    - cron: "15 7 * * *"  # elke dag om 07:15 UTC
+    - cron: "15 7 * * *"
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,10 @@ jobs:
     steps:
       - name: Ping Supabase database
         run: |
-          curl -f -sS \
+          curl -f -sS -X PATCH \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/keep_alive_ping?select=id&limit=1"
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=representation" \
+            -d "{\"last_ping\":\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/keep_alive_ping?id=eq.1"
