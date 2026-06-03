@@ -289,6 +289,19 @@
     .ghost strong{display:block}
     .empty{display:none;padding:22px;border-radius:22px;background:rgba(255,255,255,.45);color:var(--muted)}
 
+    .gallerySection{margin-top:16px}
+    .galleryHeader{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    .galleryHeader h2{margin:0;font-size:clamp(1.6rem,4vw,2.4rem);letter-spacing:-.03em}
+    .galleryHeader p{margin:6px 0 0;color:var(--muted);line-height:1.45}
+    .galleryGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:16px}
+    .galleryCard{background:var(--tile-bg);border:1px solid rgba(255,255,255,.75);border-radius:28px;overflow:hidden;box-shadow:var(--shadow)}
+    .galleryCard img{width:100%;height:220px;object-fit:cover;display:block;background:var(--input-bg)}
+    .galleryCardBody{padding:18px;display:grid;gap:8px}
+    .galleryCard h3{margin:0;font-size:1.2rem}
+    .galleryCard p{margin:0;color:var(--muted);line-height:1.45}
+    .galleryDate{font-size:.86rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+    .galleryFallback{display:none;padding:18px;border-radius:22px;background:rgba(255,255,255,.45);color:var(--muted)}
+
     dialog{
       width:min(940px,calc(100vw - 18px));
       border:0;padding:0;border-radius:30px;overflow:hidden;box-shadow:0 30px 80px rgba(20,33,50,.28)
@@ -551,6 +564,18 @@ body.deep-edit #appTitle,
         <div class="tiles" id="tiles"></div>
         <div class="empty" id="emptyState">Dit tabblad is nog leeg.</div>
       </div>
+    </section>
+
+    <section class="panel gallerySection" id="gallerySection" aria-labelledby="galleryTitle" hidden>
+      <div class="galleryHeader">
+        <div>
+          <div class="label">Galerij</div>
+          <h2 id="galleryTitle">Nieuw op de website</h2>
+          <p>Afbeeldingen die via de adminpagina zijn gepubliceerd.</p>
+        </div>
+      </div>
+      <div class="galleryGrid" id="galleryGrid"></div>
+      <div class="galleryFallback" id="galleryFallback">De galerij is nog leeg.</div>
     </section>
   </div>
 
@@ -912,6 +937,7 @@ body.deep-edit #appTitle,
     const SUPABASE_URL = 'https://tgasilapvirxiquqjflv.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRnYXNpbGFwdmlyeGlxdXFqZmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1ODE3NTksImV4cCI6MjA5NDE1Nzc1OX0.2U8VGYk3CCQ0eiTTzhD2v3ZokEB5BVrJCQ_0NiaE6mc';
     const MP_DASHBOARD_ID = 'maartens-place-main';
+    const GALLERY_CONTENT_URL = 'content/gallery.json';
     let mpSupabase = null;
     let mpDbReady = false;
     let mpDbLoading = false;
@@ -1127,6 +1153,72 @@ body.deep-edit #appTitle,
     applyTheme();
     render();
     bootSupabase();
+    loadGalleryItems();
+
+
+
+    function normalizeGalleryImagePath(imagePath){
+      if(typeof imagePath !== 'string') return '';
+      const trimmed = imagePath.trim();
+      if(!trimmed) return '';
+      if(/^https?:\/\//i.test(trimmed)) return trimmed;
+      return trimmed.replace(/^\/+/, '');
+    }
+
+    function isValidGalleryItem(item){
+      return item && typeof item.title === 'string' && item.title.trim() && typeof item.image === 'string' && item.image.trim();
+    }
+
+    function renderGalleryItems(items){
+      const section = document.getElementById('gallerySection');
+      const grid = document.getElementById('galleryGrid');
+      const fallback = document.getElementById('galleryFallback');
+      if(!section || !grid || !fallback) return;
+
+      grid.innerHTML = '';
+      const validItems = Array.isArray(items) ? items.filter(isValidGalleryItem) : [];
+      if(!validItems.length){
+        section.hidden = true;
+        fallback.style.display = 'block';
+        return;
+      }
+
+      validItems.slice().reverse().forEach(item => {
+        const card = document.createElement('article');
+        card.className = 'galleryCard';
+        const image = normalizeGalleryImagePath(item.image);
+        const description = typeof item.description === 'string' ? item.description.trim() : '';
+        const createdAt = typeof item.createdAt === 'string' ? item.createdAt.trim() : '';
+        card.innerHTML = `
+          <img src="${escapeHtml(image)}" alt="${escapeHtml(item.title.trim())}" loading="lazy">
+          <div class="galleryCardBody">
+            ${createdAt ? `<div class="galleryDate">${escapeHtml(createdAt)}</div>` : ''}
+            <h3>${escapeHtml(item.title.trim())}</h3>
+            ${description ? `<p>${escapeHtml(description)}</p>` : ''}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      fallback.style.display = 'none';
+      section.hidden = false;
+    }
+
+    async function loadGalleryItems(){
+      try{
+        const response = await fetch(`${GALLERY_CONTENT_URL}?v=${Date.now()}`, {cache:'no-store'});
+        if(response.status === 404){
+          renderGalleryItems([]);
+          return;
+        }
+        if(!response.ok) throw new Error(`gallery.json laden mislukt (${response.status})`);
+        const items = await response.json();
+        renderGalleryItems(items);
+      }catch(err){
+        console.warn('Galerij kon niet geladen worden:', err);
+        renderGalleryItems([]);
+      }
+    }
 
     function loadState(){
       try{

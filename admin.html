@@ -80,7 +80,9 @@
       font-weight: 800;
     }
 
-    input[type="file"] {
+    input[type="file"],
+    input[type="text"],
+    textarea {
       width: 100%;
       padding: 16px;
       background: var(--panel-strong);
@@ -88,6 +90,12 @@
       border-radius: 18px;
       color: var(--text);
       font: inherit;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.45;
     }
 
     button {
@@ -145,15 +153,23 @@
   <main>
     <a class="back-link" href="./">← Terug naar de site</a>
     <h1>Afbeelding uploaden naar GitHub</h1>
-    <p>Kies een jpg-, jpeg-, png- of webp-afbeelding. De afbeelding wordt veilig via Supabase naar <strong>assets/images/</strong> in GitHub geüpload.</p>
+    <p>Kies een jpg-, jpeg-, png- of webp-afbeelding. De afbeelding wordt veilig via Supabase naar <strong>assets/images/</strong> in GitHub geüpload en daarna aan <strong>content/gallery.json</strong> toegevoegd.</p>
 
     <form id="uploadForm">
+      <label for="titleInput">
+        Titel
+        <input id="titleInput" name="title" type="text" autocomplete="off" placeholder="Titel voor op de website" required />
+      </label>
+      <label for="descriptionInput">
+        Korte beschrijving
+        <textarea id="descriptionInput" name="description" placeholder="Korte beschrijving voor in de galerij"></textarea>
+      </label>
       <label for="imageInput">
         Afbeelding
         <input id="imageInput" name="image" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" required />
       </label>
-      <button id="uploadButton" type="submit">Upload naar GitHub</button>
-      <div id="status" class="status" role="status" aria-live="polite">Nog geen bestand gekozen.</div>
+      <button id="uploadButton" type="submit">Publiceer op website</button>
+      <div id="status" class="status" role="status" aria-live="polite">Vul een titel in en kies een afbeelding.</div>
     </form>
   </main>
 

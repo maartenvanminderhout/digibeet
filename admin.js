@@ -4,6 +4,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp"]);
 const TARGET_PATH = "assets/images/";
+const GALLERY_PATH = "content/gallery.json";
 const UPLOAD_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/upload-to-github`;
 const UPLOAD_HEADERS = {
   "Content-Type": "application/json",
@@ -12,6 +13,8 @@ const UPLOAD_HEADERS = {
 };
 
 const form = document.querySelector("#uploadForm");
+const titleInput = document.querySelector("#titleInput");
+const descriptionInput = document.querySelector("#descriptionInput");
 const fileInput = document.querySelector("#imageInput");
 const uploadButton = document.querySelector("#uploadButton");
 const statusBox = document.querySelector("#status");
@@ -33,6 +36,12 @@ function setStatus(message, type = "") {
 function getExtension(filename) {
   const parts = filename.toLowerCase().split(".");
   return parts.length > 1 ? parts.pop() : "";
+}
+
+function validateTitle(title) {
+  if (!title.trim()) {
+    throw new Error("Vul een titel in voordat je publiceert.");
+  }
 }
 
 function validateFile(file) {
@@ -83,17 +92,20 @@ async function readJsonResponse(response) {
       success: false,
       error: response.ok
         ? "De server gaf een ongeldig antwoord terug."
-        : `Uploaden is mislukt (${response.status} ${response.statusText || "onbekende fout"}).`
+        : `Publiceren is mislukt (${response.status} ${response.statusText || "onbekende fout"}).`
     };
   }
 }
 
-async function uploadImage(file) {
+async function publishGalleryItem({ title, description, file }) {
+  validateTitle(title);
   validateFile(file);
 
+  setStatus("Bezig: afbeelding voorbereiden…");
   const base64Content = arrayBufferToBase64(await file.arrayBuffer());
   assertPlainBase64Content(base64Content);
 
+  setStatus("Bezig: afbeelding uploaden…");
   const response = await fetch(UPLOAD_FUNCTION_URL, {
     method: "POST",
     headers: UPLOAD_HEADERS,
@@ -101,13 +113,16 @@ async function uploadImage(file) {
       filename: file.name,
       contentType: file.type,
       base64Content,
-      targetPath: TARGET_PATH
+      targetPath: TARGET_PATH,
+      title: title.trim(),
+      description: description.trim(),
+      galleryPath: GALLERY_PATH
     })
   });
 
   const result = await readJsonResponse(response);
   if (!response.ok || !result?.success) {
-    throw new Error(result?.error || `Uploaden is mislukt (${response.status} ${response.statusText || "onbekende fout"}).`);
+    throw new Error(result?.error || `Publiceren is mislukt (${response.status} ${response.statusText || "onbekende fout"}).`);
   }
 
   return result;
@@ -116,20 +131,26 @@ async function uploadImage(file) {
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  const title = titleInput.value;
+  const description = descriptionInput.value;
   const file = fileInput.files?.[0];
   uploadButton.disabled = true;
-  setStatus("Bezig met uploaden…");
 
   try {
-    const result = await uploadImage(file);
+    validateTitle(title);
+    validateFile(file);
+    const result = await publishGalleryItem({ title, description, file });
+    setStatus("Afbeelding geüpload. Galerij bijgewerkt. Klaar!", "success");
     setStatus(
-      `Gelukt!<br>GitHub-pad: <strong>${escapeHtml(result.path)}</strong><br>` +
-      `Publieke URL: <a href="${escapeHtml(result.public_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(result.public_url)}</a>`,
+      `Klaar!<br>` +
+      `Image path: <strong>${escapeHtml(result.imagePath)}</strong><br>` +
+      `Public url: <a href="${escapeHtml(result.imageUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(result.imageUrl)}</a><br>` +
+      `Galerij: <strong>${escapeHtml(result.galleryPath)}</strong> is bijgewerkt en het item is toegevoegd aan gallery.json.`,
       "success"
     );
     form.reset();
   } catch (error) {
-    setStatus(`Mislukt: ${escapeHtml(error.message)}`, "error");
+    setStatus(`Foutmelding: ${escapeHtml(error.message)}`, "error");
   } finally {
     uploadButton.disabled = false;
   }
@@ -138,7 +159,7 @@ form.addEventListener("submit", async (event) => {
 fileInput.addEventListener("change", () => {
   const file = fileInput.files?.[0];
   if (!file) {
-    setStatus("Nog geen bestand gekozen.");
+    setStatus("Vul een titel in en kies een afbeelding.");
     return;
   }
 
@@ -146,6 +167,6 @@ fileInput.addEventListener("change", () => {
     validateFile(file);
     setStatus(`Gekozen bestand: <strong>${escapeHtml(file.name)}</strong>`);
   } catch (error) {
-    setStatus(`Mislukt: ${escapeHtml(error.message)}`, "error");
+    setStatus(`Foutmelding: ${escapeHtml(error.message)}`, "error");
   }
 });
