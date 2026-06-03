@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "title": "Tas",
+    "description": "Een mooie blauwe bigshopper",
+    "image": "assets/images/blauwe-tas.jpeg",
+    "createdAt": "2026-06-03"
+  }
+]
