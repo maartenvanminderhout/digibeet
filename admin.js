@@ -4,6 +4,12 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp"]);
 const TARGET_PATH = "assets/images/";
+const UPLOAD_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/upload-to-github`;
+const UPLOAD_HEADERS = {
+  "Content-Type": "application/json",
+  "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+  "apikey": SUPABASE_ANON_KEY
+};
 
 const form = document.querySelector("#uploadForm");
 const fileInput = document.querySelector("#imageInput");
@@ -44,6 +50,12 @@ function validateFile(file) {
   }
 }
 
+function assertPlainBase64Content(base64Content) {
+  if (base64Content.startsWith("data:")) {
+    throw new Error("De afbeelding kon niet worden verwerkt: base64Content mag geen data-url prefix bevatten.");
+  }
+}
+
 function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer);
   let binary = "";
@@ -57,17 +69,34 @@ function arrayBufferToBase64(buffer) {
   return btoa(binary);
 }
 
+async function readJsonResponse(response) {
+  const responseText = await response.text();
+
+  if (!responseText) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(responseText);
+  } catch (error) {
+    return {
+      success: false,
+      error: response.ok
+        ? "De server gaf een ongeldig antwoord terug."
+        : `Uploaden is mislukt (${response.status} ${response.statusText || "onbekende fout"}).`
+    };
+  }
+}
+
 async function uploadImage(file) {
   validateFile(file);
 
   const base64Content = arrayBufferToBase64(await file.arrayBuffer());
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/upload-to-github`, {
+  assertPlainBase64Content(base64Content);
+
+  const response = await fetch(UPLOAD_FUNCTION_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-      "apikey": SUPABASE_ANON_KEY
-    },
+    headers: UPLOAD_HEADERS,
     body: JSON.stringify({
       filename: file.name,
       contentType: file.type,
@@ -76,9 +105,9 @@ async function uploadImage(file) {
     })
   });
 
-  const result = await response.json().catch(() => null);
+  const result = await readJsonResponse(response);
   if (!response.ok || !result?.success) {
-    throw new Error(result?.error || "Uploaden is mislukt.");
+    throw new Error(result?.error || `Uploaden is mislukt (${response.status} ${response.statusText || "onbekende fout"}).`);
   }
 
   return result;
