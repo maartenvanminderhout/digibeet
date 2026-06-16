@@ -13,7 +13,36 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body style="margin:0; overflow-x:hidden;">
-  <div id="root"></div>
+  <div id="root">
+    <div id="startupFallback" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f4ff;color:#1e3a5f;font-family:Arial,sans-serif;padding:24px;text-align:center;">
+      <div style="max-width:560px;background:white;border:1px solid #dbeafe;border-radius:18px;padding:24px;box-shadow:0 16px 40px rgba(30,58,95,.12);">
+        <div style="font-size:22px;font-weight:800;margin-bottom:8px;">Schoolplanner laden…</div>
+        <div style="font-size:14px;color:#64748b;line-height:1.5;">Als dit blijft staan, is meestal React/Babel of een CDN-script niet geladen. Open dan de browserconsole met F12 voor de exacte melding.</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    window.__schoolplannerStartup = { startedAt: Date.now() };
+    window.addEventListener('error', function(event) {
+      window.__schoolplannerStartup.lastError = event.message || 'Onbekende scriptfout';
+    });
+    setTimeout(function() {
+      var root = document.getElementById('root');
+      var fallback = document.getElementById('startupFallback');
+      if (!root || !fallback) return;
+      var hasRenderedApp = root.textContent && !root.textContent.includes('Schoolplanner laden');
+      if (!hasRenderedApp) {
+        var missing = [];
+        if (!window.React) missing.push('React');
+        if (!window.ReactDOM) missing.push('ReactDOM');
+        if (!window.Babel) missing.push('Babel');
+        var msg = missing.length
+          ? 'Niet geladen: ' + missing.join(', ') + '. Controleer internet/CDN-blokkade of upload naar echte hosting.'
+          : (window.__schoolplannerStartup.lastError || 'De app is niet gestart. Controleer de console voor de exacte fout.');
+        fallback.innerHTML = '<div style="max-width:620px;background:white;border:1px solid #fecaca;border-radius:18px;padding:24px;box-shadow:0 16px 40px rgba(30,58,95,.12);"><div style="font-size:22px;font-weight:800;margin-bottom:8px;color:#991b1b;">App start niet</div><div style="font-size:14px;color:#475569;line-height:1.55;">' + msg.replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }) + '</div><div style="margin-top:14px;font-size:13px;color:#64748b;">Tip: deze ChatGPT-preview kan externe CDN-scripts blokkeren. Test het bestand via download/upload of op Cloudflare Pages.</div></div>';
+      }
+    }, 3200);
+  </script>
   <script type="text/babel">
 const { useState, useMemo, useEffect, useRef } = React;
 
@@ -446,11 +475,10 @@ function PlannerCell({ cls, day, teachers = [], assistants = [], supporters = []
                                         return next;
                                       });
                                     }}
-                                    title={isOnDay ? "Klik om te kiezen, dubbelklik om dag te verwijderen" : "Klik om dag toe te voegen"}
+                                    title={`${getDayMeta(s, d).label} · ${isOnDay ? "klik om te kiezen, dubbelklik om dag te verwijderen" : "klik om dag toe te voegen"}`}
                                     style={{ width:30, height:22, borderRadius:4, border:getDayMeta(s, d).fixed ? "2px solid #B91C1C" : isSelected ? "2px solid #92400E" : getDayMeta(s, d).preferred ? "1.5px solid #15803D" : "none", fontSize:10, fontWeight:700, cursor:"pointer",
                                       background: isOnDay ? "#D97706" : getDayMeta(s, d).fixed ? "#FEE2E2" : getDayMeta(s, d).preferred ? "#DCFCE7" : "#FEF3C7", color: isOnDay ? "white" : getDayMeta(s, d).fixed ? "#991B1B" : getDayMeta(s, d).preferred ? "#166534" : "#92400E"
                                     }}
-                                    title={getDayMeta(s, d).label}
                                   >{DAY_SHORT[di]}</button>
                                 );
                               });
@@ -535,11 +563,10 @@ function PlannerCell({ cls, day, teachers = [], assistants = [], supporters = []
                                       return next;
                                     });
                                   }}
-                                  title={isOnDay ? "Klik om te kiezen, dubbelklik om dag te verwijderen" : "Klik om dag toe te voegen"}
+                                  title={`${getDayMeta(s, d).label} · ${isOnDay ? "klik om te kiezen, dubbelklik om dag te verwijderen" : "klik om dag toe te voegen"}`}
                                   style={{ width:30, height:22, borderRadius:4, border:getDayMeta(s, d).fixed ? "2px solid #B91C1C" : isSelected ? "2px solid #6D28D9" : getDayMeta(s, d).preferred ? "1.5px solid #15803D" : "none", fontSize:10, fontWeight:700, cursor:"pointer",
                                     background: isOnDay ? "#7C3AED" : getDayMeta(s, d).fixed ? "#FEE2E2" : getDayMeta(s, d).preferred ? "#DCFCE7" : "#F3E8FF", color: isOnDay ? "white" : getDayMeta(s, d).fixed ? "#991B1B" : getDayMeta(s, d).preferred ? "#166534" : "#6D28D9"
                                   }}
-                                  title={getDayMeta(s, d).label}
                                 >{DAY_SHORT[di]}</button>
                               );
                             });
